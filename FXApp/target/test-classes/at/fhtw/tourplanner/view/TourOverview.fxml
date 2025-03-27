@@ -7,7 +7,8 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="at.fhtw.tourplanner.view.TourOverviewController"
-      spacing="5">
+      spacing="5"
+      stylesheets="@styles/TourOverview.css">
     <padding>
         <Insets top="5" right="5" bottom="5" left="5"/>
     </padding>
