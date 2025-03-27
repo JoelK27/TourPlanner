@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 
 public class TourOverviewController {
     @FXML
@@ -15,6 +16,10 @@ public class TourOverviewController {
     private Button newTourButton;
     @FXML
     private Button deleteTourButton;
+    @FXML
+    private TextField searchTextField;
+    @FXML
+    private Button searchButton;
 
     private final TourOverviewViewModel tourOverviewViewModel;
 
@@ -30,6 +35,12 @@ public class TourOverviewController {
     void initialize() {
         tourListView.setItems(tourOverviewViewModel.getObservableTours());
         tourListView.getSelectionModel().selectedItemProperty().addListener(tourOverviewViewModel.getChangeListener());
+        searchTextField.textProperty().bindBidirectional(tourOverviewViewModel.searchTextProperty());
+    }
+
+    @FXML
+    void onSearchButtonClicked(ActionEvent event) {
+        tourOverviewViewModel.search();
     }
 
     @FXML

@@ -15,6 +15,7 @@ import java.sql.Date;
 import java.sql.Time;
 
 public class TourDetailsController {
+    // Tour Details Tab
     @FXML public Label tourTitleLabel;
     @FXML public TextField nameField;
     @FXML public TextArea descriptionArea;
@@ -24,16 +25,11 @@ public class TourDetailsController {
     @FXML public TextField distanceField;
     @FXML public TextField estimatedTimeField;
 
-    @FXML public TableView<Log> logTableView;
-    @FXML public TableColumn<Log, Date> dateColumn;
-    @FXML public TableColumn<Log, Time> timeColumn;
-    @FXML public TableColumn<Log, String> commentColumn;
-    @FXML public TableColumn<Log, Integer> difficultyColumn;
-    @FXML public TableColumn<Log, Double> totalDistanceColumn;
-    @FXML public TableColumn<Log, Time> totalTimeColumn;
-    @FXML public TableColumn<Log, Integer> ratingColumn;
-
-    @FXML public TextField logCommentField;
+    // Tour Logs Tab - neue UI-Komponenten
+    @FXML public ListView<Log> logListView;
+    @FXML public Label logDateLabel;
+    @FXML public Label logTimeLabel;
+    @FXML public TextArea logCommentArea;
     @FXML public TextField logDifficultyField;
     @FXML public TextField logTotalDistanceField;
     @FXML public TextField logTotalTimeField;
@@ -58,7 +54,7 @@ public class TourDetailsController {
 
     @FXML
     void initialize() {
-        // Bind text fields to view model properties
+        // Bind text fields to view model properties for tour details
         tourDetailsViewModel.nameProperty().addListener((obs, oldName, newName) -> {
             updateTourTitle();
         });
@@ -82,51 +78,63 @@ public class TourDetailsController {
                 new NumberStringConverter()
         );
 
-        // Setup log table columns
-        dateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
-        timeColumn.setCellValueFactory(new PropertyValueFactory<>("time"));
-        commentColumn.setCellValueFactory(new PropertyValueFactory<>("comment"));
-        difficultyColumn.setCellValueFactory(new PropertyValueFactory<>("difficulty"));
-        totalDistanceColumn.setCellValueFactory(new PropertyValueFactory<>("totalDistance"));
-        totalTimeColumn.setCellValueFactory(new PropertyValueFactory<>("totalTime"));
-        ratingColumn.setCellValueFactory(new PropertyValueFactory<>("rating"));
+        // Setup für die Log-ListView
+        logListView.setItems(tourDetailsViewModel.getLogs());
 
-        // Set logs as the table's data source
-        logTableView.setItems(tourDetailsViewModel.getLogs());
+        // Anzeigen der Details beim Auswählen eines Logs
+        logListView.getSelectionModel().selectedItemProperty().addListener((obs, oldLog, newLog) -> {
+            tourDetailsViewModel.selectedLogProperty().set(newLog);
+            updateLogDetailsView(newLog);
+        });
 
-        // Add edit capability to log table
-        logTableView.setEditable(true);
-        setupEditableColumns();
-
-        // Bind selected log to input fields
-        tourDetailsViewModel.selectedLogProperty().addListener((obs, oldLog, newLog) -> {
-            if (newLog != null) {
-                logCommentField.setText(newLog.getComment());
-                logDifficultyField.setText(String.valueOf(newLog.getDifficulty()));
-                logTotalDistanceField.setText(String.valueOf(newLog.getTotalDistance()));
-                logTotalTimeField.setText(newLog.getTotalTime().toString());
-                logRatingField.setText(String.valueOf(newLog.getRating()));
-            } else {
-                logCommentField.clear();
-                logDifficultyField.clear();
-                logTotalDistanceField.clear();
-                logTotalTimeField.clear();
-                logRatingField.clear();
+        // Zellenfactory für bessere Darstellung in der Liste
+        logListView.setCellFactory(lv -> new ListCell<Log>() {
+            @Override
+            protected void updateItem(Log log, boolean empty) {
+                super.updateItem(log, empty);
+                if (empty || log == null) {
+                    setText(null);
+                } else {
+                    // Format: "YYYY-MM-DD - Anfang des Kommentars..."
+                    String shortComment = log.getComment();
+                    if (shortComment != null && shortComment.length() > 30) {
+                        shortComment = shortComment.substring(0, 27) + "...";
+                    }
+                    setText(log.getDate() + " - " + shortComment);
+                }
             }
         });
 
-        logTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            tourDetailsViewModel.selectedLogProperty().set(newSelection);
+        // Listener für die Auswahl eines Logs
+        tourDetailsViewModel.selectedLogProperty().addListener((obs, oldLog, newLog) -> {
+            updateLogDetailsView(newLog);
         });
     }
 
-    private void setupEditableColumns() {
-        // Implement editable columns if needed
+    private void updateLogDetailsView(Log log) {
+        if (log != null) {
+            logDateLabel.setText(log.getDate().toString());
+            logTimeLabel.setText(log.getTime().toString());
+            logCommentArea.setText(log.getComment());
+            logDifficultyField.setText(String.valueOf(log.getDifficulty()));
+            logTotalDistanceField.setText(String.valueOf(log.getTotalDistance()));
+            logTotalTimeField.setText(log.getTotalTime().toString());
+            logRatingField.setText(String.valueOf(log.getRating()));
+        } else {
+            logDateLabel.setText("");
+            logTimeLabel.setText("");
+            logCommentArea.setText("");
+            logDifficultyField.clear();
+            logTotalDistanceField.clear();
+            logTotalTimeField.clear();
+            logRatingField.clear();
+        }
     }
 
     public void setTour(Tour tour) {
         this.currentTour = tour;
         tourDetailsViewModel.setTourModel(tour);
+        updateTourTitle();
     }
 
     public void clearFields() {
@@ -136,38 +144,47 @@ public class TourDetailsController {
 
     @FXML
     void onAddLogButtonPressed() {
-        if (validateLogFields()) {
-            try {
-                Date date = new Date(System.currentTimeMillis());
-                Time time = new Time(System.currentTimeMillis());
-                String comment = logCommentField.getText();
-                int difficulty = Integer.parseInt(logDifficultyField.getText());
-                double totalDistance = Double.parseDouble(logTotalDistanceField.getText());
-                Time totalTime = Time.valueOf(logTotalTimeField.getText());
-                int rating = Integer.parseInt(logRatingField.getText());
+        try {
+            Date date = new Date(System.currentTimeMillis());
+            Time time = new Time(System.currentTimeMillis());
 
-                tourDetailsViewModel.createNewLog(date, time, comment, difficulty, totalDistance, totalTime, rating);
-            } catch (NumberFormatException e) {
-                // Handle invalid input
-                showAlert("Invalid input", "Please enter valid values for the log attributes.");
-            }
-        } else {
-            showAlert("Validation Error", "Please fill in all required fields with valid values.");
+            // Erstelle ein neues Log mit Standardwerten
+            Log newLog = tourDetailsViewModel.createNewLog(date, time, "New Entry",
+                    3, 0.0, Time.valueOf("00:00:00"), 3);
+
+            // Wähle das neue Log in der Liste aus
+            logListView.getSelectionModel().select(newLog);
+            logListView.scrollTo(newLog);
+
+            // Setze den Fokus auf das Kommentarfeld für sofortige Bearbeitung
+            logCommentArea.requestFocus();
+        } catch (Exception e) {
+            showAlert("Error", "Error creating Log: " + e.getMessage());
         }
     }
 
     @FXML
     void onDeleteLogButtonPressed() {
-        tourDetailsViewModel.deleteSelectedLog();
+        Log selectedLog = logListView.getSelectionModel().getSelectedItem();
+        if (selectedLog != null) {
+            tourDetailsViewModel.deleteSelectedLog();
+
+            // Wenn nach dem Löschen noch Logs vorhanden sind, wähle das erste aus
+            if (!logListView.getItems().isEmpty()) {
+                logListView.getSelectionModel().select(0);
+            }
+        } else {
+            showAlert("No log selected", "Please select a log-entry from the list.");
+        }
     }
 
     @FXML
     void onUpdateLogButtonPressed() {
-        Log selectedLog = tourDetailsViewModel.selectedLogProperty().get();
+        Log selectedLog = logListView.getSelectionModel().getSelectedItem();
         if (selectedLog != null) {
             if (validateLogFields()) {
                 try {
-                    String comment = logCommentField.getText();
+                    String comment = logCommentArea.getText();
                     int difficulty = Integer.parseInt(logDifficultyField.getText());
                     double totalDistance = Double.parseDouble(logTotalDistanceField.getText());
                     Time totalTime = Time.valueOf(logTotalTimeField.getText());
@@ -175,18 +192,21 @@ public class TourDetailsController {
 
                     tourDetailsViewModel.updateSelectedLog(selectedLog, comment, difficulty, totalDistance, totalTime, rating);
                 } catch (NumberFormatException e) {
-                    // Handle invalid input
-                    showAlert("Invalid input", "Please enter valid values for the log attributes.");
+                    showAlert("Invalid Entry", "Bitte geben Sie gültige Werte für die Log-Attribute ein.");
+                } catch (IllegalArgumentException e) {
+                    showAlert("Invalid Timeformat", "Please provide a time in following format: HH:MM:SS.");
                 }
             } else {
-                showAlert("Validation Error", "Please fill in all required fields with valid values.");
+                showAlert("Invalidation Error", "Please fill in all required fields with valid values.");
             }
+        } else {
+            showAlert("No log selected", "Please select a log-entry from the list.");
         }
     }
 
     private boolean validateLogFields() {
         return tourDetailsViewModel.validateLogFields(
-                logCommentField.getText(),
+                logCommentArea.getText(),
                 logDifficultyField.getText(),
                 logTotalDistanceField.getText(),
                 logTotalTimeField.getText(),

@@ -9,10 +9,7 @@
     <padding>
         <Insets top="10" right="10" bottom="10" left="10"/>
     </padding>
-    <ToolBar>
-        <Label text="Name"/>
-        <TextField fx:id="nameTextField" HBox.hgrow="ALWAYS"/>
-    </ToolBar>
+    <Label fx:id="tourTitleLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
     <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
         <Tab text="Tour details">
             <VBox spacing="10">
@@ -32,32 +29,61 @@
             </VBox>
         </Tab>
         <Tab text="Tour logs">
-            <VBox spacing="10">
-                <padding>
-                    <Insets top="5" right="5" bottom="5" left="5"/>
-                </padding>
-                <ToolBar>
-                    <Button text="+" onAction="#onAddLogButtonPressed"/>
-                    <Button text="-" onAction="#onDeleteLogButtonPressed"/>
-                    <Button text="Update" onAction="#onUpdateLogButtonPressed"/>
-                </ToolBar>
-                <TableView fx:id="logTableView" VBox.vgrow="ALWAYS">
-                    <columns>
-                        <TableColumn fx:id="dateColumn" text="Date"/>
-                        <TableColumn fx:id="timeColumn" text="Time"/>
-                        <TableColumn fx:id="commentColumn" text="Comment"/>
-                        <TableColumn fx:id="difficultyColumn" text="Difficulty"/>
-                        <TableColumn fx:id="totalDistanceColumn" text="Total Distance"/>
-                        <TableColumn fx:id="totalTimeColumn" text="Total Time"/>
-                        <TableColumn fx:id="ratingColumn" text="Rating"/>
-                    </columns>
-                </TableView>
-                <TextField fx:id="logCommentField" promptText="Comment"/>
-                <TextField fx:id="logDifficultyField" promptText="Difficulty"/>
-                <TextField fx:id="logTotalDistanceField" promptText="Total Distance"/>
-                <TextField fx:id="logTotalTimeField" promptText="Total Time (HH:MM:SS)"/>
-                <TextField fx:id="logRatingField" promptText="Rating"/>
-            </VBox>
+            <SplitPane dividerPositions="0.3" VBox.vgrow="ALWAYS">
+                <!-- Linke Seite: Listenansicht und Aktionsbuttons -->
+                <VBox spacing="5">
+                    <ToolBar>
+                        <Button text="+" onAction="#onAddLogButtonPressed"/>
+                        <Button text="-" onAction="#onDeleteLogButtonPressed"/>
+                    </ToolBar>
+                    <ListView fx:id="logListView" VBox.vgrow="ALWAYS" />
+                </VBox>
+
+                <!-- Rechte Seite: Detailansicht des ausgewählten Logs -->
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="5" right="5" bottom="5" left="5"/>
+                    </padding>
+
+                    <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Log Details"/>
+
+                    <HBox spacing="5">
+                        <Label minWidth="100" text="Date:" />
+                        <Label fx:id="logDateLabel" />
+                    </HBox>
+
+                    <HBox spacing="5">
+                        <Label minWidth="100" text="Time:" />
+                        <Label fx:id="logTimeLabel" />
+                    </HBox>
+
+                    <Label text="Comment:" />
+                    <TextArea fx:id="logCommentArea" prefHeight="100" wrapText="true" VBox.vgrow="ALWAYS" />
+
+                    <GridPane hgap="10" vgap="5">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="100" />
+                            <ColumnConstraints hgrow="SOMETIMES" />
+                        </columnConstraints>
+
+                        <Label text="Difficulty:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                        <TextField fx:id="logDifficultyField" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+
+                        <Label text="Total Distance:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                        <TextField fx:id="logTotalDistanceField" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+
+                        <Label text="Total Time:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+                        <TextField fx:id="logTotalTimeField" promptText="HH:MM:SS" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+
+                        <Label text="Rating:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
+                        <TextField fx:id="logRatingField" GridPane.rowIndex="3" GridPane.columnIndex="1" />
+                    </GridPane>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="Save Changes" onAction="#onUpdateLogButtonPressed" />
+                    </HBox>
+                </VBox>
+            </SplitPane>
         </Tab>
     </TabPane>
 </VBox>

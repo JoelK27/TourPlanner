@@ -5,7 +5,7 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="at.fhtw.tourplanner.view.MainWindowController"
-      prefHeight="400.0" prefWidth="600.0">
+      prefHeight="600.0" prefWidth="800.0">
     <MenuBar>
         <Menu text="%Menu_File">
             <MenuItem text="%Menu_File_Import"/>
@@ -22,7 +22,6 @@
             <MenuItem text="%Menu_Help_About" onAction="#onMenuHelpAboutClicked"/>
         </Menu>
     </MenuBar>
-    <fx:include fx:id="searchBar" source="SearchBar.fxml"/>
     <SplitPane dividerPositions="0.3" VBox.vgrow="ALWAYS">
         <fx:include fx:id="tourOverview" source="TourOverview.fxml"/>
         <fx:include fx:id="tourDetails" source="TourDetails.fxml"/>

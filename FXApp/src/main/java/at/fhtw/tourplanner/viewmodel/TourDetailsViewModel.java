@@ -128,7 +128,7 @@ public class TourDetailsViewModel {
         logs.addAll(store.getLogsForTour(tour.getId()));
     }
 
-    public void createNewLog(Date date, Time time, String comment, int difficulty, double totalDistance, Time totalTime, int rating) {
+    public Log createNewLog(Date date, Time time, String comment, int difficulty, double totalDistance, Time totalTime, int rating) {
         if (tourModel != null) {
             Log newLog = new Log();
             newLog.setTourId(tourModel.getId());
@@ -142,7 +142,9 @@ public class TourDetailsViewModel {
             store.addLog(tourModel.getId(), newLog);
             logs.add(newLog);
             selectedLog.set(newLog);
+            return newLog;
         }
+        return null;
     }
 
     public void updateSelectedLog(Log log, String comment, int difficulty, double totalDistance, Time totalTime, int rating) {

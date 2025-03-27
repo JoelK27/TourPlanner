@@ -2,6 +2,8 @@ package at.fhtw.tourplanner.viewmodel;
 
 import at.fhtw.tourplanner.model.Tour;
 import at.fhtw.tourplanner.store.TourStore;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,6 +20,7 @@ public class TourOverviewViewModel {
 
     private final List<SelectionChangedListener> listeners = new ArrayList<>();
     private final ObservableList<Tour> observableTours = FXCollections.observableArrayList();
+    private final StringProperty searchText = new SimpleStringProperty("");
 
     public TourOverviewViewModel() {
         setTours(store.getAllTours());
@@ -25,6 +28,16 @@ public class TourOverviewViewModel {
 
     public ObservableList<Tour> getObservableTours() {
         return observableTours;
+    }
+
+    public StringProperty searchTextProperty() {
+        return searchText;
+    }
+
+    public void search() {
+        List<Tour> results = store.searchTours(searchText.get());
+        observableTours.clear();
+        observableTours.addAll(results);
     }
 
     public ChangeListener<Tour> getChangeListener() {

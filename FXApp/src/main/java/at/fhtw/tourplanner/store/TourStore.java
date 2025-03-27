@@ -27,6 +27,17 @@ public class TourStore {
                 "Innsbruck", "Nordkette", "Hiking", 12.0, 4.0));
         addTour(new Tour(nextTourId++, "Danube Bike Path", "Cycling along the Danube River",
                 "Vienna", "Krems", "Bicycle", 80.0, 5.0));
+
+        // Füge einige Beispiel-Logs hinzu
+        Log log1 = new Log(nextLogId++, 1, new Date(System.currentTimeMillis()),
+                new Time(System.currentTimeMillis()), "Das ist eine tolle Tour!", 3, 295.0,
+                Time.valueOf("03:30:00"), 5);
+        Log log2 = new Log(nextLogId++, 2, new Date(System.currentTimeMillis()),
+                new Time(System.currentTimeMillis()), "Bergwanderung war anstrengend aber schön", 4, 12.0,
+                Time.valueOf("04:15:00"), 4);
+
+        addLog(1, log1);
+        addLog(2, log2);
     }
 
     public static TourStore getInstance() {
@@ -79,12 +90,34 @@ public class TourStore {
             return new ArrayList<>(tours);
         }
 
-        return tours.stream()
-                .filter(tour -> tour.getName().toLowerCase().contains(searchText.toLowerCase()) ||
-                        tour.getTourDescription().toLowerCase().contains(searchText.toLowerCase()) ||
-                        tour.getFrom().toLowerCase().contains(searchText.toLowerCase()) ||
-                        tour.getTo().toLowerCase().contains(searchText.toLowerCase()))
-                .collect(Collectors.toList());
+        String lowerSearchText = searchText.toLowerCase();
+
+        // Neue Liste für die Ergebnisse
+        List<Tour> results = new ArrayList<>();
+
+        // Füge zuerst alle Tours hinzu, die direkt im Namen, Beschreibung, etc. übereinstimmen
+        results.addAll(tours.stream()
+                .filter(tour ->
+                        tour.getName().toLowerCase().contains(lowerSearchText) ||
+                                tour.getTourDescription().toLowerCase().contains(lowerSearchText) ||
+                                tour.getFrom().toLowerCase().contains(lowerSearchText) ||
+                                tour.getTo().toLowerCase().contains(lowerSearchText) ||
+                                tour.getTransportType().toLowerCase().contains(lowerSearchText))
+                .collect(Collectors.toList()));
+
+        // Nun suche in den TourLogs und füge die entsprechenden Tours hinzu
+        tours.forEach(tour -> {
+            List<Log> logs = tourLogs.getOrDefault(tour.getId(), new ArrayList<>());
+            boolean hasMatchingLog = logs.stream()
+                    .anyMatch(log ->
+                            (log.getComment() != null && log.getComment().toLowerCase().contains(lowerSearchText)));
+
+            if (hasMatchingLog && !results.contains(tour)) {
+                results.add(tour);
+            }
+        });
+
+        return results;
     }
 
     // Log management methods

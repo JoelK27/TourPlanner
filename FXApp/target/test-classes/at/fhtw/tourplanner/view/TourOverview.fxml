@@ -11,6 +11,12 @@
     <padding>
         <Insets top="5" right="5" bottom="5" left="5"/>
     </padding>
+
+    <HBox spacing="5" alignment="CENTER_LEFT">
+        <TextField fx:id="searchTextField" promptText="Search tours and logs..." HBox.hgrow="ALWAYS"/>
+        <Button fx:id="searchButton" text="Search" onAction="#onSearchButtonClicked"/>
+    </HBox>
+
     <HBox spacing="5" alignment="CENTER_RIGHT">
         <Button fx:id="newTourButton" onAction="#onNewTourClicked" text="New"/>
         <Button fx:id="deleteTourButton" onAction="#onDeleteTourClicked" text="Delete"/>
