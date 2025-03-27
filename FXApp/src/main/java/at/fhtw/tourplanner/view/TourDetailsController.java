@@ -15,7 +15,7 @@ import java.sql.Date;
 import java.sql.Time;
 
 public class TourDetailsController {
-    @FXML public TextField nameTextField;
+    @FXML public Label tourTitleLabel;
     @FXML public TextField nameField;
     @FXML public TextArea descriptionArea;
     @FXML public TextField fromField;
@@ -59,7 +59,10 @@ public class TourDetailsController {
     @FXML
     void initialize() {
         // Bind text fields to view model properties
-        nameTextField.textProperty().bindBidirectional(tourDetailsViewModel.nameProperty());
+        tourDetailsViewModel.nameProperty().addListener((obs, oldName, newName) -> {
+            updateTourTitle();
+        });
+
         nameField.textProperty().bindBidirectional(tourDetailsViewModel.nameProperty());
         descriptionArea.textProperty().bindBidirectional(tourDetailsViewModel.descriptionProperty());
         fromField.textProperty().bindBidirectional(tourDetailsViewModel.fromProperty());
@@ -197,5 +200,21 @@ public class TourDetailsController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private void updateTourTitle() {
+        String name = tourDetailsViewModel.nameProperty().get();
+        String from = tourDetailsViewModel.fromProperty().get();
+        String to = tourDetailsViewModel.toProperty().get();
+
+        if (name != null && !name.isEmpty()) {
+            if (from != null && !from.isEmpty() && to != null && !to.isEmpty()) {
+                tourTitleLabel.setText("Tour: " + name + " (" + from + " to " + to + ")");
+            } else {
+                tourTitleLabel.setText("Tour: " + name);
+            }
+        } else {
+            tourTitleLabel.setText("New Tour");
+        }
     }
 }

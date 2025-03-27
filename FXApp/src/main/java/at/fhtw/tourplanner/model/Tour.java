@@ -1,7 +1,12 @@
 package at.fhtw.tourplanner.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 
+@Getter
+@Setter
 public class Tour implements Serializable {
     private int id;
     private String name;
@@ -24,71 +29,6 @@ public class Tour implements Serializable {
         this.to = to;
         this.transportType = transportType;
         this.tourDistance = tourDistance;
-        this.estimatedTime = estimatedTime;
-    }
-
-    // Explicit getters and setters
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getTourDescription() {
-        return tourDescription;
-    }
-
-    public void setTourDescription(String tourDescription) {
-        this.tourDescription = tourDescription;
-    }
-
-    public String getFrom() {
-        return from;
-    }
-
-    public void setFrom(String from) {
-        this.from = from;
-    }
-
-    public String getTo() {
-        return to;
-    }
-
-    public void setTo(String to) {
-        this.to = to;
-    }
-
-    public String getTransportType() {
-        return transportType;
-    }
-
-    public void setTransportType(String transportType) {
-        this.transportType = transportType;
-    }
-
-    public double getTourDistance() {
-        return tourDistance;
-    }
-
-    public void setTourDistance(double tourDistance) {
-        this.tourDistance = tourDistance;
-    }
-
-    public double getEstimatedTime() {
-        return estimatedTime;
-    }
-
-    public void setEstimatedTime(double estimatedTime) {
         this.estimatedTime = estimatedTime;
     }
 

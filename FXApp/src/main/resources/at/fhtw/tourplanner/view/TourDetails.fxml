@@ -9,10 +9,7 @@
     <padding>
         <Insets top="10" right="10" bottom="10" left="10"/>
     </padding>
-    <ToolBar>
-        <Label text="Name"/>
-        <TextField fx:id="nameTextField" HBox.hgrow="ALWAYS"/>
-    </ToolBar>
+    <Label fx:id="tourTitleLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
     <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
         <Tab text="Tour details">
             <VBox spacing="10">
