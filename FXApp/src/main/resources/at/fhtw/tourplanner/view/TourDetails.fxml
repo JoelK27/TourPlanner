@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="at.fhtw.tourplanner.view.TourDetailsController"
+      spacing="10"
+      stylesheets="@styles/TourDetails.css">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+    <Label fx:id="tourTitleLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <Tab text="Tour details">
+            <VBox spacing="10">
+                <padding>
+                    <Insets top="5" right="5" bottom="5" left="5"/>
+                </padding>
+                <Label prefHeight="35.0" prefWidth="104.0" text="Tour Details" />
+                <TextField fx:id="nameField" promptText="Tour name" />
+                <TextArea fx:id="descriptionArea" prefHeight="62.0" prefWidth="473.0" promptText="Tour Description" />
+                <TextField fx:id="fromField" promptText="From" />
+                <TextField fx:id="toField" promptText="To" />
+                <ChoiceBox fx:id="transportTypeChoice" prefHeight="25.0" prefWidth="472.0" maxWidth="Infinity" />
+                <TextField fx:id="distanceField" promptText="Tour distance" />
+                <TextField fx:id="estimatedTimeField" promptText="Estimated time" />
+                <Label text="*Map Placeholder*" style="-fx-background-color: lightgray; -fx-alignment: center;"
+                       VBox.vgrow="ALWAYS" maxWidth="Infinity" maxHeight="Infinity" />
+            </VBox>
+        </Tab>
+        <Tab text="Tour logs">
+            <SplitPane dividerPositions="0.3" VBox.vgrow="ALWAYS">
+                <!-- Linke Seite: Listenansicht und Aktionsbuttons -->
+                <VBox spacing="5">
+                    <ToolBar>
+                        <Button text="+" onAction="#onAddLogButtonPressed"/>
+                        <Button text="-" onAction="#onDeleteLogButtonPressed"/>
+                    </ToolBar>
+                    <ListView fx:id="logListView" VBox.vgrow="ALWAYS" />
+                </VBox>
+
+                <!-- Rechte Seite: Detailansicht des ausgewählten Logs -->
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="5" right="5" bottom="5" left="5"/>
+                    </padding>
+
+                    <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Log Details"/>
+
+                    <HBox spacing="5">
+                        <Label minWidth="100" text="Date:" />
+                        <Label fx:id="logDateLabel" />
+                    </HBox>
+
+                    <HBox spacing="5">
+                        <Label minWidth="100" text="Time:" />
+                        <Label fx:id="logTimeLabel" />
+                    </HBox>
+
+                    <Label text="Comment:" />
+                    <TextArea fx:id="logCommentArea" prefHeight="100" wrapText="true" VBox.vgrow="ALWAYS" />
+
+                    <GridPane hgap="10" vgap="5">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="100" />
+                            <ColumnConstraints hgrow="SOMETIMES" />
+                        </columnConstraints>
+
+                        <Label text="Difficulty:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                        <TextField fx:id="logDifficultyField" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+
+                        <Label text="Total Distance:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                        <TextField fx:id="logTotalDistanceField" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+
+                        <Label text="Total Time:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+                        <TextField fx:id="logTotalTimeField" promptText="HH:MM:SS" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+
+                        <Label text="Rating:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
+                        <TextField fx:id="logRatingField" GridPane.rowIndex="3" GridPane.columnIndex="1" />
+                    </GridPane>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="Save Changes" onAction="#onUpdateLogButtonPressed" />
+                    </HBox>
+                </VBox>
+            </SplitPane>
+        </Tab>
+    </TabPane>
+</VBox>

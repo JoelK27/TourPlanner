@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="at.fhtw.tourplanner.view.TourOverviewController"
+      spacing="5"
+      stylesheets="@styles/TourOverview.css">
+    <padding>
+        <Insets top="5" right="5" bottom="5" left="5"/>
+    </padding>
+
+    <HBox spacing="5" alignment="CENTER_LEFT">
+        <TextField fx:id="searchTextField" promptText="Search tours and logs..." HBox.hgrow="ALWAYS"/>
+        <Button fx:id="searchButton" text="Search" onAction="#onSearchButtonClicked"/>
+    </HBox>
+
+    <HBox spacing="5" alignment="CENTER_RIGHT">
+        <Button fx:id="newTourButton" onAction="#onNewTourClicked" text="New"/>
+        <Button fx:id="deleteTourButton" onAction="#onDeleteTourClicked" text="Delete"/>
+    </HBox>
+    <ListView fx:id="tourListView" VBox.vgrow="ALWAYS"/>
+</VBox>

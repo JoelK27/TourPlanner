@@ -1,0 +1,119 @@
+/* TourDetails spezifische Styles */
+#tourTitleLabel {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-secondary;
+    -fx-padding: 5px 0 10px 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 1, 0, 0, 1);
+}
+
+/* Formulare im Tour-Details-Tab */
+.tour-form {
+    -fx-spacing: 10px;
+    -fx-padding: 10px;
+}
+
+.tour-form .text-field, .tour-form .text-area, .tour-form .choice-box {
+    -fx-max-width: Infinity;
+}
+
+.tour-form .text-area {
+    -fx-pref-height: 100px;
+}
+
+/* Map Placeholder */
+.map-placeholder {
+    -fx-background-color: -fx-grey-light;
+    -fx-alignment: center;
+    -fx-min-height: 200px;
+    -fx-border-color: -fx-grey-mid;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-text-fill: -fx-secondary-light;
+}
+
+/* TourLogs SplitPane */
+.log-split-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.log-split-pane > .split-pane-divider {
+    -fx-background-color: -fx-grey-light;
+    -fx-padding: 0 1px;
+}
+
+/* Log-Ansicht */
+.log-list-view .list-cell {
+    -fx-padding: 0.75em 1em;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -fx-grey-light transparent;
+}
+
+.log-list-view .list-cell:hover {
+    -fx-background-color: derive(-fx-grey-light, 50%);
+}
+
+.log-list-view .list-cell:selected {
+    -fx-background-color: derive(-fx-primary, 90%);
+    -fx-text-fill: -fx-secondary;
+    -fx-font-weight: bold;
+}
+
+/* Log Details Panel */
+.log-details-panel {
+    -fx-background-color: -fx-background-alt;
+    -fx-padding: 15px;
+    -fx-spacing: 10px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 2, 0, 0, 0);
+}
+
+.log-details-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-secondary;
+    -fx-padding: 0 0 5px 0;
+    -fx-border-color: transparent transparent -fx-grey-light transparent;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.log-label {
+    -fx-font-weight: bold;
+    -fx-min-width: 100px;
+}
+
+.log-value {
+    -fx-text-fill: -fx-secondary;
+}
+
+.log-comment-area {
+    -fx-pref-height: 100px;
+    -fx-wrap-text: true;
+}
+
+/* Log Action Buttons */
+.log-button-bar {
+    -fx-alignment: center-right;
+    -fx-padding: 10px 0 0 0;
+}
+
+.log-add-button {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 2px 8px;
+}
+
+.log-delete-button {
+    -fx-background-color: -fx-error;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 2px 8px;
+}
+
+.log-save-button {
+    -fx-background-color: -fx-primary;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 5px 15px;
+}
