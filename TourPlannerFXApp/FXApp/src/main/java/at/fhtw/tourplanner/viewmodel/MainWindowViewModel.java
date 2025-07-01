@@ -1,13 +1,13 @@
 package at.fhtw.tourplanner.viewmodel;
 
 import at.fhtw.tourplanner.model.Tour;
-import at.fhtw.tourplanner.store.TourStore;
+import at.fhtw.tourplanner.apiclient.TourApiService;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class MainWindowViewModel {
-    private final TourStore store = TourStore.getInstance();
+    private final TourApiService apiService = TourApiService.getInstance();
     private final StringProperty searchField = new SimpleStringProperty("");
     private final ObservableList<Tour> tourList = FXCollections.observableArrayList();
     private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
@@ -70,7 +70,7 @@ public class MainWindowViewModel {
 
     public void updateTourList() {
         tourList.clear();
-        tourList.addAll(store.searchTours(searchField.get()));
+        tourList.addAll(apiService.searchTours(searchField.get()));
 
         if (tourOverviewViewModel != null) {
             tourOverviewViewModel.setTours(tourList);
@@ -78,14 +78,14 @@ public class MainWindowViewModel {
     }
 
     public void createNewTour() {
-        var newTour = store.createNewTour();
+        var newTour = apiService.createNewTour();
         updateTourList();
         selectedTour.set(newTour);
     }
 
     public void updateSelectedTour() {
         if (selectedTour.get() != null) {
-            store.updateTour(
+            apiService.updateTour(
                     selectedTour.get(),
                     tourName.get(),
                     tourDescription.get(),
@@ -101,7 +101,7 @@ public class MainWindowViewModel {
 
     public void deleteSelectedTour() {
         if (selectedTour.get() != null) {
-            store.deleteTour(selectedTour.get());
+            apiService.deleteTour(selectedTour.get());
             updateTourList();
             selectedTour.set(null);
         }

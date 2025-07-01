@@ -1,8 +1,2 @@
-at\fhtw\tourplanner\store\TourStore.class
-at\fhtw\tourplanner\model\Tour.class
-at\fhtw\tourplanner\model\Log.class
-at\fhtw\tourplanner\viewmodel\TourOverviewViewModel.class
 module-info.class
-at\fhtw\tourplanner\view\TourOverviewController.class
-at\fhtw\tourplanner\TourPlannerApplication.class
-at\fhtw\tourplanner\viewmodel\TourOverviewViewModel$SelectionChangedListener.class
+at\fhtw\tourplanner\view\ControllerFactory.class

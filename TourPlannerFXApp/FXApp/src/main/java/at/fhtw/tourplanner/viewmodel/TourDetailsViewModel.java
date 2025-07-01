@@ -2,7 +2,7 @@ package at.fhtw.tourplanner.viewmodel;
 
 import at.fhtw.tourplanner.model.Log;
 import at.fhtw.tourplanner.model.Tour;
-import at.fhtw.tourplanner.store.TourStore;
+import at.fhtw.tourplanner.apiclient.TourApiService;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -12,7 +12,7 @@ import java.sql.Date;
 import java.sql.Time;
 
 public class TourDetailsViewModel {
-    private final TourStore store = TourStore.getInstance();
+    private final TourApiService apiService = TourApiService.getInstance();
     private Tour tourModel;
     private volatile boolean isInitValue = false;
 
@@ -110,7 +110,7 @@ public class TourDetailsViewModel {
 
     private void updateTourModel() {
         if (!isInitValue && tourModel != null) {
-            store.updateTour(
+            apiService.updateTour(
                     tourModel,
                     name.get(),
                     description.get(),
@@ -125,7 +125,7 @@ public class TourDetailsViewModel {
 
     private void loadLogsForTour(Tour tour) {
         logs.clear();
-        logs.addAll(store.getLogsForTour(tour.getId()));
+        logs.addAll(apiService.getLogsForTour(tour.getId()));
     }
 
     public Log createNewLog(Date date, Time time, String comment, int difficulty, double totalDistance, Time totalTime, int rating) {
@@ -139,7 +139,7 @@ public class TourDetailsViewModel {
             newLog.setTotalDistance(totalDistance);
             newLog.setTotalTime(totalTime);
             newLog.setRating(rating);
-            store.addLog(tourModel.getId(), newLog);
+            apiService.addLog(tourModel.getId(), newLog);
             logs.add(newLog);
             selectedLog.set(newLog);
             return newLog;
@@ -154,14 +154,14 @@ public class TourDetailsViewModel {
             log.setTotalDistance(totalDistance);
             log.setTotalTime(totalTime);
             log.setRating(rating);
-            store.updateLog(log);
+            apiService.updateLog(log);
             refreshLogs();
         }
     }
 
     public void deleteSelectedLog() {
         if (selectedLog.get() != null) {
-            store.deleteLog(selectedLog.get());
+            apiService.deleteLog(selectedLog.get());
             logs.remove(selectedLog.get());
             selectedLog.set(null);
             refreshLogs();
@@ -170,7 +170,7 @@ public class TourDetailsViewModel {
 
     private void refreshLogs() {
         if (tourModel != null) {
-            logs.setAll(store.getLogsForTour(tourModel.getId()));
+            logs.setAll(apiService.getLogsForTour(tourModel.getId()));
         }
     }
 
@@ -180,8 +180,6 @@ public class TourDetailsViewModel {
             Double.parseDouble(totalDistance);
             Time.valueOf(totalTime);
             Integer.parseInt(rating);
-        } catch (NumberFormatException e) {
-            return false;
         } catch (IllegalArgumentException e) {
             return false;
         }

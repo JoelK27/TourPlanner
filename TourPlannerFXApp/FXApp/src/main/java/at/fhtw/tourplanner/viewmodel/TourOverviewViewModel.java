@@ -1,7 +1,7 @@
 package at.fhtw.tourplanner.viewmodel;
 
 import at.fhtw.tourplanner.model.Tour;
-import at.fhtw.tourplanner.store.TourStore;
+import at.fhtw.tourplanner.apiclient.TourApiService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TourOverviewViewModel {
-    private final TourStore store = TourStore.getInstance();
+    private final TourApiService apiService = TourApiService.getInstance();
 
     public interface SelectionChangedListener {
         void changeSelection(Tour tour);
@@ -23,7 +23,7 @@ public class TourOverviewViewModel {
     private final StringProperty searchText = new SimpleStringProperty("");
 
     public TourOverviewViewModel() {
-        setTours(store.getAllTours());
+        setTours(apiService.getAllTours());
     }
 
     public ObservableList<Tour> getObservableTours() {
@@ -35,7 +35,7 @@ public class TourOverviewViewModel {
     }
 
     public void search() {
-        List<Tour> results = store.searchTours(searchText.get());
+        List<Tour> results = apiService.searchTours(searchText.get());
         observableTours.clear();
         observableTours.addAll(results);
     }
@@ -64,12 +64,12 @@ public class TourOverviewViewModel {
     }
 
     public void addNewTour() {
-        var tour = store.createNewTour();
+        var tour = apiService.createNewTour();
         observableTours.add(tour);
     }
 
     public void deleteTour(Tour tour) {
-        store.deleteTour(tour);
+        apiService.deleteTour(tour);
         observableTours.remove(tour);
     }
 }

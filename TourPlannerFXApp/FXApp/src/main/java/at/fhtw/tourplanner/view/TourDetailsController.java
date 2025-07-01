@@ -2,7 +2,6 @@ package at.fhtw.tourplanner.view;
 
 import at.fhtw.tourplanner.model.Log;
 import at.fhtw.tourplanner.model.Tour;
-import at.fhtw.tourplanner.store.TourStore;
 import at.fhtw.tourplanner.viewmodel.TourDetailsViewModel;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -36,7 +35,6 @@ public class TourDetailsController {
     @FXML public TextField logRatingField;
 
     private final TourDetailsViewModel tourDetailsViewModel;
-    private final TourStore store = TourStore.getInstance();
     private final ObservableList<Log> observableLogs = FXCollections.observableArrayList();
     private Tour currentTour;
 

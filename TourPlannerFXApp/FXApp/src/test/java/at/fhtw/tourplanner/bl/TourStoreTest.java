@@ -2,7 +2,7 @@ package at.fhtw.tourplanner.bl;
 
 import at.fhtw.tourplanner.model.Tour;
 import at.fhtw.tourplanner.model.Log;
-import at.fhtw.tourplanner.store.TourStore;
+import at.fhtw.tourplanner.apiclient.TourApiService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,38 +12,38 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TourStoreTest {
-    private TourStore tourStore;
+    private TourApiService apiService;
 
     @BeforeEach
     public void setUp() {
-        tourStore = TourStore.getInstance();
+        apiService = TourApiService.getInstance();
     }
 
     private void clearAllTours() {
-        List<Tour> allTours = tourStore.getAllTours();
+        List<Tour> allTours = apiService.getAllTours();
         for (Tour tour : allTours) {
-            tourStore.deleteTour(tour);
+            apiService.deleteTour(tour);
         }
     }
 
     @Test
     public void testCreateNewTour() {
-        Tour newTour = tourStore.createNewTour();
+        Tour newTour = apiService.createNewTour();
         assertNotNull(newTour);
         assertEquals("New Tour", newTour.getName());
     }
 
     @Test
     public void testFindMatchingTours() {
-        List<Tour> tours = tourStore.searchTours("Vienna");
+        List<Tour> tours = apiService.searchTours("Vienna");
         assertFalse(tours.isEmpty());
         assertTrue(tours.stream().anyMatch(tour -> tour.getName().contains("Vienna")));
     }
 
     @Test
     public void testUpdateTour() {
-        Tour tour = tourStore.createNewTour();
-        tourStore.updateTour(tour, "Updated Tour", "Updated Description", "From", "To", "Car", 100.0, 2.0);
+        Tour tour = apiService.createNewTour();
+        apiService.updateTour(tour, "Updated Tour", "Updated Description", "From", "To", "Car", 100.0, 2.0);
         assertEquals("Updated Tour", tour.getName());
         assertEquals("Updated Description", tour.getTourDescription());
         assertEquals("From", tour.getFrom());
@@ -56,33 +56,33 @@ public class TourStoreTest {
     @Test
     public void testDeleteTour() {
         clearAllTours();
-        Tour tour = tourStore.createNewTour();
-        tourStore.deleteTour(tour);
-        List<Tour> tours = tourStore.searchTours("New Tour");
+        Tour tour = apiService.createNewTour();
+        apiService.deleteTour(tour);
+        List<Tour> tours = apiService.searchTours("New Tour");
         assertTrue(tours.isEmpty());
     }
 
     @Test
     public void testCreateNewLog() {
-        Tour tour = tourStore.createNewTour();
-        Log newLog = tourStore.createNewLog(tour.getId());
+        Tour tour = apiService.createNewTour();
+        Log newLog = apiService.createNewLog(tour.getId());
         assertNotNull(newLog);
         assertEquals(tour.getId(), newLog.getTourId());
     }
 
     @Test
     public void testGetLogsForTour() {
-        Tour tour = tourStore.createNewTour();
-        Log newLog = tourStore.createNewLog(tour.getId());
-        List<Log> logs = tourStore.getLogsForTour(tour.getId());
+        Tour tour = apiService.createNewTour();
+        Log newLog = apiService.createNewLog(tour.getId());
+        List<Log> logs = apiService.getLogsForTour(tour.getId());
         assertFalse(logs.isEmpty());
         assertTrue(logs.contains(newLog));
     }
 
     @Test
     public void testUpdateLog() {
-        Tour tour = tourStore.createNewTour();
-        Log log = tourStore.createNewLog(tour.getId());
+        Tour tour = apiService.createNewTour();
+        Log log = apiService.createNewLog(tour.getId());
         String updatedComment = "Updated Comment";
         int updatedDifficulty = 5;
         double updatedDistance = 150.0;
@@ -95,9 +95,9 @@ public class TourStoreTest {
         log.setTotalTime(updatedTime);
         log.setRating(updatedRating);
 
-        tourStore.updateLog(log);
+        apiService.updateLog(log);
 
-        List<Log> logs = tourStore.getLogsForTour(tour.getId());
+        List<Log> logs = apiService.getLogsForTour(tour.getId());
         assertTrue(logs.contains(log));
         Log updatedLog = logs.get(0);
         assertEquals(updatedComment, updatedLog.getComment());
@@ -109,12 +109,12 @@ public class TourStoreTest {
 
     @Test
     public void testSearchToursWithMatchingLogs() {
-        Tour tour = tourStore.createNewTour();
-        Log log = tourStore.createNewLog(tour.getId());
+        Tour tour = apiService.createNewTour();
+        Log log = apiService.createNewLog(tour.getId());
         log.setComment("UniqueSearchTerm");
 
-        tourStore.updateLog(log);
-        List<Tour> results = tourStore.searchTours("UniqueSearchTerm");
+        apiService.updateLog(log);
+        List<Tour> results = apiService.searchTours("UniqueSearchTerm");
 
         assertFalse(results.isEmpty());
         assertTrue(results.contains(tour));
@@ -122,29 +122,29 @@ public class TourStoreTest {
 
     @Test
     public void testDeleteLog() {
-        Tour tour = tourStore.createNewTour();
-        Log log = tourStore.createNewLog(tour.getId());
+        Tour tour = apiService.createNewTour();
+        Log log = apiService.createNewLog(tour.getId());
 
-        tourStore.deleteLog(log);
-        List<Log> logs = tourStore.getLogsForTour(tour.getId());
+        apiService.deleteLog(log);
+        List<Log> logs = apiService.getLogsForTour(tour.getId());
 
         assertTrue(logs.isEmpty());
     }
 
     @Test
     public void testSearchToursWithNoMatch() {
-        List<Tour> results = tourStore.searchTours("NonExistentSearchTerm");
+        List<Tour> results = apiService.searchTours("NonExistentSearchTerm");
         assertTrue(results.isEmpty());
     }
 
     @Test
     public void testAddMultipleLogsToTour() {
-        Tour tour = tourStore.createNewTour();
+        Tour tour = apiService.createNewTour();
 
-        Log log1 = tourStore.createNewLog(tour.getId());
-        Log log2 = tourStore.createNewLog(tour.getId());
+        Log log1 = apiService.createNewLog(tour.getId());
+        Log log2 = apiService.createNewLog(tour.getId());
 
-        List<Log> logs = tourStore.getLogsForTour(tour.getId());
+        List<Log> logs = apiService.getLogsForTour(tour.getId());
         assertEquals(2, logs.size());
         assertTrue(logs.contains(log1));
         assertTrue(logs.contains(log2));
@@ -152,9 +152,9 @@ public class TourStoreTest {
 
     @Test
     public void testUpdateTourWithEmptyFields() {
-        Tour tour = tourStore.createNewTour();
+        Tour tour = apiService.createNewTour();
 
-        tourStore.updateTour(tour, "", "", "", "", "", 0.0, 0.0);
+        apiService.updateTour(tour, "", "", "", "", "", 0.0, 0.0);
 
         assertEquals("", tour.getName());
         assertEquals("", tour.getTourDescription());

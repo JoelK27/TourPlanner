@@ -5,6 +5,10 @@ module tourplanner {
     requires java.desktop;
     requires static lombok;
     requires java.sql;
+    requires com.fasterxml.jackson.core;
+    requires com.fasterxml.jackson.databind;
+    requires org.apache.httpcomponents.httpcore;
+    requires org.apache.httpcomponents.httpclient;
 
     opens at.fhtw.tourplanner.view to javafx.graphics, javafx.fxml;
     exports at.fhtw.tourplanner;
