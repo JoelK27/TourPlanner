@@ -33,4 +33,28 @@ public class LogController {
     public void deleteLog(@PathVariable int id) {
         logRepository.deleteById(id);
     }
+
+    @PutMapping("/logs/{id}")
+    public Log updateLog(@PathVariable int id, @RequestBody Log log) {
+        Log existingLog = logRepository.findById(id).orElseThrow();
+        // Felder aktualisieren
+        existingLog.setDate(log.getDate());
+        existingLog.setTime(log.getTime());
+        existingLog.setComment(log.getComment());
+        existingLog.setDifficulty(log.getDifficulty());
+        existingLog.setTotalDistance(log.getTotalDistance());
+        existingLog.setTotalTime(log.getTotalTime());
+        existingLog.setRating(log.getRating());
+        // Tour-Zuordnung ggf. aktualisieren
+        if (log.getTourId() != 0) {
+            Tour tour = tourRepository.findById(log.getTourId()).orElseThrow();
+            existingLog.setTour(tour);
+        }
+        return logRepository.save(existingLog);
+    }
+
+    @GetMapping("/api/logs/search")
+    public List<Log> searchLogs(@RequestParam String query) {
+        return logRepository.searchLogs(query);
+    }
 }

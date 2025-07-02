@@ -1,5 +1,6 @@
 package at.fhtw.tourplanner.view;
 
+import at.fhtw.tourplanner.apiclient.TourApiService;
 import at.fhtw.tourplanner.model.Log;
 import at.fhtw.tourplanner.model.Tour;
 import at.fhtw.tourplanner.viewmodel.TourDetailsViewModel;
@@ -8,10 +9,15 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
 import javafx.util.converter.NumberStringConverter;
 
+import java.io.File;
 import java.sql.Date;
 import java.sql.Time;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import java.io.ByteArrayInputStream;
 
 public class TourDetailsController {
     // Tour Details Tab
@@ -23,6 +29,8 @@ public class TourDetailsController {
     @FXML public ChoiceBox<String> transportTypeChoice;
     @FXML public TextField distanceField;
     @FXML public TextField estimatedTimeField;
+    @FXML public ImageView tourImageView;
+    @FXML public Label imageStatusLabel;
 
     // Tour Logs Tab - neue UI-Komponenten
     @FXML public ListView<Log> logListView;
@@ -133,6 +141,7 @@ public class TourDetailsController {
         this.currentTour = tour;
         tourDetailsViewModel.setTourModel(tour);
         updateTourTitle();
+        loadAndDisplayTourImage(); 
     }
 
     public void clearFields() {
@@ -202,6 +211,104 @@ public class TourDetailsController {
         }
     }
 
+    @FXML
+    void onUploadImageClicked() {
+        if (currentTour == null) {
+            showAlert("No Tour Selected", "Please select a tour-entry from the list.");
+            return;
+        }
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png"));
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null) {
+            TourApiService.getInstance().uploadTourImage(currentTour.getId(), file);
+            showAlert("Uploaded Image", "The image has been uploaded successfully.");
+            loadAndDisplayTourImage();
+        }
+    }
+
+    @FXML
+    void onDownloadImageClicked() {
+        if (currentTour == null) {
+            showAlert("No Tour Selected", "Please select a tour-entry from the list.");
+            return;
+        }
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.jpg"));
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            byte[] imageBytes = TourApiService.getInstance().downloadTourImage(currentTour.getId());
+            if (imageBytes != null) {
+                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
+                    fos.write(imageBytes);
+                    showAlert("Image saved", "The image has been saved successfully.");
+                } catch (Exception e) {
+                    showAlert("Error", "Error saving image: " + e.getMessage());
+                }
+            } else {
+                showAlert("Error", "No image available or error while saving.");
+            }
+        }
+    }
+
+    @FXML
+    void onRefreshImageClicked() {
+        loadAndDisplayTourImage();
+    }
+
+    @FXML
+    void onSaveTourReportClicked() {
+        if (currentTour == null) {
+            showAlert("No Tour Selected", "Please select a tour-entry from the list.");
+            return;
+        }
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            TourApiService.getInstance().saveTourReport(currentTour.getId(), file);
+            showAlert("Saved Report", "The Tour-Report has been saved successfully.");
+        }
+    }
+
+    @FXML
+    void onSaveSummaryReportClicked() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            TourApiService.getInstance().saveSummaryReport(file);
+            showAlert("Saved Report", "The Summary-Report has been saved successfully.");
+        }
+    }
+
+    @FXML
+    void onShowTourStatsClicked() {
+        if (currentTour == null) {
+            showAlert("No Tour Selected", "Please select a tour-entry from the list.");
+            return;
+        }
+        var stats = TourApiService.getInstance().getTourStats(currentTour.getId());
+        showAlert("Tour-Statistics",
+                "Popularity: " + stats.get("popularity") +
+                "\nChild-Friendliness: " + stats.get("childFriendliness") +
+                "\nØ Difficulty: " + stats.get("averageDifficulty") +
+                "\nØ Time (sec.): " + stats.get("averageTotalTimeSeconds") +
+                "\nØ Distance: " + stats.get("averageTotalDistance"));
+    }
+
+    @FXML
+    void onShowWeatherClicked() {
+        if (currentTour == null) {
+            showAlert("No Tour Selected", "Please select a tour-entry from the list.");
+            return;
+        }
+        var weather = TourApiService.getInstance().getTourWeather(currentTour.getId());
+        showAlert("Weather Information",
+                "Start: " + weather.get("fromWeather") +
+                "\nGoal: " + weather.get("toWeather"));
+    }
+
     private boolean validateLogFields() {
         return tourDetailsViewModel.validateLogFields(
                 logCommentArea.getText(),
@@ -233,6 +340,31 @@ public class TourDetailsController {
             }
         } else {
             tourTitleLabel.setText("New Tour");
+        }
+    }
+
+    // Methode zum Laden und Anzeigen des Tour-Bildes:
+    private void loadAndDisplayTourImage() {
+        if (currentTour == null) {
+            tourImageView.setImage(null);
+            imageStatusLabel.setText("No image available");
+            return;
+        }
+        
+        try {
+            byte[] imageBytes = TourApiService.getInstance().downloadTourImage(currentTour.getId());
+            if (imageBytes != null && imageBytes.length > 0) {
+                Image image = new Image(new ByteArrayInputStream(imageBytes));
+                tourImageView.setImage(image);
+                imageStatusLabel.setText("Image loaded successfully");
+            } else {
+                tourImageView.setImage(null);
+                imageStatusLabel.setText("No image available");
+            }
+        } catch (Exception e) {
+            tourImageView.setImage(null);
+            imageStatusLabel.setText("Error loading image");
+            System.err.println("Error loading image: " + e.getMessage());
         }
     }
 }

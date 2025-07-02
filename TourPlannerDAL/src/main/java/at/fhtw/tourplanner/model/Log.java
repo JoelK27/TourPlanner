@@ -1,5 +1,6 @@
 package at.fhtw.tourplanner.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -23,5 +24,16 @@ public class Log {
 
     @ManyToOne
     @JoinColumn(name = "tour_id", nullable = false)
+    @JsonIgnore
     private Tour tour;
+
+    // Helper method to get tourId for JSON serialization
+    public int getTourId() {
+        return tour != null ? tour.getId() : 0;
+    }
+
+    // Helper method to set tourId (used by JSON deserialization)
+    public void setTourId(int tourId) {
+        // This will be handled by the controller
+    }
 }

@@ -32,6 +32,20 @@
     -fx-text-fill: -fx-secondary-light;
 }
 
+.tour-image {
+    -fx-background-color: -fx-grey-light;
+    -fx-border-color: -fx-grey-mid;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.image-status {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-grey-dark;
+    -fx-padding: 5px 0;
+}
+
 /* TourLogs SplitPane */
 .log-split-pane {
     -fx-background-color: transparent;

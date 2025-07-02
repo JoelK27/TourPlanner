@@ -8,8 +8,8 @@
       prefHeight="600.0" prefWidth="800.0">
     <MenuBar>
         <Menu text="%Menu_File">
-            <MenuItem text="%Menu_File_Import"/>
-            <MenuItem text="%Menu_File_Export"/>
+            <MenuItem text="%Menu_File_Import" onAction="#onMenuFileImportClicked"/>
+            <MenuItem text="%Menu_File_Export" onAction="#onMenuFileExportClicked"/>
             <MenuItem text="%Menu_File_Quit" onAction="#onMenuFileQuitClicked"/>
         </Menu>
         <Menu text="%Menu_Edit">

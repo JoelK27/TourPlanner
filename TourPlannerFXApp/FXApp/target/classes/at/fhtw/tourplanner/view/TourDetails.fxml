@@ -3,6 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.image.ImageView?>
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="at.fhtw.tourplanner.view.TourDetailsController"
       spacing="10"
@@ -27,6 +28,25 @@
                 <TextField fx:id="estimatedTimeField" promptText="Estimated time" />
                 <Label text="*Map Placeholder*" style="-fx-background-color: lightgray; -fx-alignment: center;"
                        VBox.vgrow="ALWAYS" maxWidth="Infinity" maxHeight="Infinity" />
+                <!-- Ersetze das Label "*Map Placeholder*" durch: -->
+                <ImageView fx:id="tourImageView" 
+                        fitHeight="200" 
+                        fitWidth="400" 
+                        preserveRatio="true" 
+                        styleClass="tour-image"
+                        VBox.vgrow="ALWAYS"/>
+                <Label fx:id="imageStatusLabel" 
+                    text="No image available" 
+                    styleClass="image-status"
+                    textAlignment="CENTER"/>
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="action-button-bar">
+                    <Button text="Upload Image" onAction="#onUploadImageClicked" styleClass="action-button"/>
+                    <Button text="Save Image" onAction="#onDownloadImageClicked" styleClass="action-button"/>
+                    <Button text="Tour-Report" onAction="#onSaveTourReportClicked" styleClass="action-button"/>
+                    <Button text="Summary-Report" onAction="#onSaveSummaryReportClicked" styleClass="action-button"/>
+                    <Button text="Tour Stats" onAction="#onShowTourStatsClicked" styleClass="action-button"/>
+                    <Button text="Show Weather" onAction="#onShowWeatherClicked" styleClass="action-button"/>
+                </HBox>            
             </VBox>
         </Tab>
         <Tab text="Tour logs">

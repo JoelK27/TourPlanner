@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,6 +17,9 @@ public class Tour implements Serializable {
     private String transportType;
     private double tourDistance;
     private double estimatedTime;
+
+    // Füge das Feld hinzu:
+    private List<Log> logs;
 
     public Tour() {
     }
