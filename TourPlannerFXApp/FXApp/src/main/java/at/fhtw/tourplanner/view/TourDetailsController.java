@@ -4,6 +4,7 @@ import at.fhtw.tourplanner.apiclient.TourApiService;
 import at.fhtw.tourplanner.model.Log;
 import at.fhtw.tourplanner.model.Tour;
 import at.fhtw.tourplanner.viewmodel.TourDetailsViewModel;
+import at.fhtw.tourplanner.viewmodel.TourOverviewViewModel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -92,25 +93,49 @@ public class TourDetailsController {
 
         Platform.runLater(() -> {
             if (mapWebView != null) {
-                // Error Handler für WebView
+                // Detailliertes Error-Handling für WebView
                 mapWebView.getEngine().setOnError(event -> {
                     System.err.println("WebView Error: " + event.getMessage());
+                    System.err.println("Error source: " + event.getSource());
                 });
 
-                // Load Handler für WebView
+                // JavaScript Console Output anzeigen
+                mapWebView.getEngine().setOnAlert(event -> {
+                    System.out.println("JavaScript Alert: " + event.getData());
+                });
+
+                // Load Worker Status überwachen
                 mapWebView.getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
-                    System.out.println("WebView Load State: " + newValue);
-                    if (newValue == javafx.concurrent.Worker.State.FAILED) {
-                        System.err.println("WebView failed to load content");
+                    System.out.println("WebView Load State: " + oldValue + " -> " + newValue);
+
+                    switch (newValue) {
+                        case SUCCEEDED:
+                            System.out.println("WebView content loaded successfully!");
+                            break;
+                        case FAILED:
+                            System.err.println("WebView failed to load content");
+                            Throwable exception = mapWebView.getEngine().getLoadWorker().getException();
+                            if (exception != null) {
+                                System.err.println("Exception: " + exception.getMessage());
+                            }
+                            break;
+                        case CANCELLED:
+                            System.err.println("WebView loading was cancelled");
+                            break;
                     }
                 });
-
-                showSimpleMap(); // Zeige Standard-Karte beim Start
+            } else {
+                System.err.println("mapWebView is null!");
             }
         });
 
         // Setup für die Log-ListView
         logListView.setItems(tourDetailsViewModel.getLogs());
+
+        if (tourDetailsViewModel.getLogs().isEmpty()) {
+            logListView.getSelectionModel().clearSelection();
+            tourDetailsViewModel.selectedLogProperty().set(null);
+        }
 
         // Anzeigen der Details beim Auswählen eines Logs
         logListView.getSelectionModel().selectedItemProperty().addListener((obs, oldLog, newLog) -> {
@@ -394,85 +419,215 @@ public class TourDetailsController {
         String toLocation = toField.getText().trim();
         String transportType = transportTypeChoice.getValue();
 
+        System.out.println("=== Calculate Route Button Pressed ===");
+        System.out.println("From: '" + fromLocation + "'");
+        System.out.println("To: '" + toLocation + "'");
+        System.out.println("Transport: '" + transportType + "'");
+
         if (fromLocation.isEmpty() || toLocation.isEmpty()) {
             showAlert("Missing Information", "Please enter both from and to locations.");
             return;
         }
 
+        if (transportType == null) {
+            transportType = "Car"; // Default fallback
+        }
+
         try {
+            System.out.println("Calling TourApiService.calculateRoute...");
             Map<String, Object> routeInfo = TourApiService.getInstance()
                     .calculateRoute(fromLocation, toLocation, transportType);
+
+            System.out.println("Route calculation completed. Result: " + routeInfo);
 
             if (!routeInfo.isEmpty()) {
                 // Update distance and time fields
                 double distance = (Double) routeInfo.get("distance");
                 double estimatedTime = (Double) routeInfo.get("estimatedTime");
 
+                System.out.println("Distance: " + distance + " km");
+                System.out.println("Estimated Time: " + estimatedTime + " hours");
+
                 distanceField.setText(String.format("%.2f", distance));
                 estimatedTimeField.setText(String.format("%.2f", estimatedTime));
 
-                // Update map
+                // Update map with route
+                System.out.println("Calling updateMap...");
                 updateMap(routeInfo);
 
                 showAlert("Route Calculated",
                         String.format("Distance: %.2f km\nEstimated Time: %.2f hours",
                                 distance, estimatedTime));
+            } else {
+                System.err.println("ERROR: Route info is empty!");
+                showAlert("Error", "No route data received from server");
             }
         } catch (Exception e) {
+            System.err.println("=== EXCEPTION in onCalculateRoutePressed ===");
             System.err.println("Error calculating route: " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("==========================================");
             showAlert("Error", "Failed to calculate route: " + e.getMessage());
-            // Fallback: Zeige einfache Karte
-            showSimpleMap();
+
+            // Fallback: Zeige Test-Karte
+            showTestMap();
         }
     }
 
     private void updateMap(Map<String, Object> routeInfo) {
         try {
             System.out.println("=== UpdateMap Debug ===");
-            System.out.println("RouteInfo received: " + routeInfo);
+            System.out.println("RouteInfo keys: " + routeInfo.keySet());
+            System.out.println("RouteInfo: " + routeInfo);
 
             String routeGeometry = (String) routeInfo.get("routeGeometry");
+            System.out.println("Route Geometry type: " + (routeGeometry != null ? routeGeometry.getClass().getName() : "null"));
             System.out.println("Route Geometry: " + routeGeometry);
 
-            // Korrigiere die Konvertierung von ArrayList zu double[]
-            List<Double> startCoordsList = (List<Double>) routeInfo.get("startCoords");
-            List<Double> endCoordsList = (List<Double>) routeInfo.get("endCoords");
-
-            System.out.println("Start Coords List: " + startCoordsList);
-            System.out.println("End Coords List: " + endCoordsList);
-
-            if (startCoordsList == null || endCoordsList == null) {
-                System.err.println("ERROR: Coordinates are null!");
-                showSimpleMap();
+            // Prüfe ob es valides JSON ist
+            if (routeGeometry != null && !routeGeometry.equals("{}") && !routeGeometry.equals("null")) {
+                System.out.println("✓ Valid route geometry detected");
+            } else {
+                System.out.println("⚠ No valid route geometry - showing simple map");
+                showTestMap();
                 return;
             }
 
-            double[] startCoords = startCoordsList.stream().mapToDouble(Double::doubleValue).toArray();
-            double[] endCoords = endCoordsList.stream().mapToDouble(Double::doubleValue).toArray();
+            // Koordinaten verarbeiten
+            Object startCoordsObj = routeInfo.get("startCoords");
+            Object endCoordsObj = routeInfo.get("endCoords");
 
-            System.out.println("Start Coords Array: [" + startCoords[0] + ", " + startCoords[1] + "]");
-            System.out.println("End Coords Array: [" + endCoords[0] + ", " + endCoords[1] + "]");
+            System.out.println("Start Coords Object: " + startCoordsObj + " (Type: " + (startCoordsObj != null ? startCoordsObj.getClass().getName() : "null") + ")");
+            System.out.println("End Coords Object: " + endCoordsObj + " (Type: " + (endCoordsObj != null ? endCoordsObj.getClass().getName() : "null") + ")");
+
+            if (startCoordsObj == null || endCoordsObj == null) {
+                System.err.println("ERROR: Coordinates are null!");
+                showTestMap();
+                return;
+            }
+
+            // Konvertiere zu double arrays
+            double[] startCoords, endCoords;
+
+            if (startCoordsObj instanceof List) {
+                List<Double> startCoordsList = (List<Double>) startCoordsObj;
+                startCoords = startCoordsList.stream().mapToDouble(Double::doubleValue).toArray();
+            } else if (startCoordsObj instanceof double[]) {
+                startCoords = (double[]) startCoordsObj;
+            } else {
+                System.err.println("ERROR: Unexpected startCoords type: " + startCoordsObj.getClass());
+                showTestMap();
+                return;
+            }
+
+            if (endCoordsObj instanceof List) {
+                List<Double> endCoordsList = (List<Double>) endCoordsObj;
+                endCoords = endCoordsList.stream().mapToDouble(Double::doubleValue).toArray();
+            } else if (endCoordsObj instanceof double[]) {
+                endCoords = (double[]) endCoordsObj;
+            } else {
+                System.err.println("ERROR: Unexpected endCoords type: " + endCoordsObj.getClass());
+                showTestMap();
+                return;
+            }
+
+            System.out.println("Start Coords: [" + startCoords[0] + ", " + startCoords[1] + "]");
+            System.out.println("End Coords: [" + endCoords[0] + ", " + endCoords[1] + "]");
 
             String mapHtml = generateMapHtml(routeGeometry, startCoords, endCoords);
             System.out.println("Generated HTML length: " + mapHtml.length());
 
-            // WebView auf JavaFX Application Thread laden
             Platform.runLater(() -> {
-                System.out.println("Loading HTML into WebView...");
+                System.out.println("Loading map HTML into WebView...");
                 mapWebView.getEngine().loadContent(mapHtml);
-                System.out.println("HTML loaded into WebView");
             });
 
             System.out.println("========================");
         } catch (Exception e) {
-            System.err.println("Error updating map: " + e.getMessage());
+            System.err.println("=== ERROR in updateMap ===");
+            System.err.println("Exception: " + e.getMessage());
             e.printStackTrace();
-            showSimpleMap();
+            System.err.println("========================");
+            showTestMap();
         }
     }
 
+    private void showTestMap() {
+        String testHtml = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8" />
+            <title>Test Map</title>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+            <style>
+                body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+                #map { height: 100vh; width: 100%; }
+                .test-info {
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    z-index: 1000;
+                    background: white;
+                    padding: 10px;
+                    border-radius: 5px;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="test-info">
+                <h3>🧪 TEST MAP</h3>
+                <p>If you see this, WebView works!</p>
+            </div>
+            <div id="map"></div>
+            <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+            <script>
+                console.log('Initializing test map...');
+                
+                var map = L.map('map').setView([48.2082, 16.3738], 8);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                
+                // Test-Marker
+                L.marker([48.2082, 16.3738]).addTo(map)
+                    .bindPopup('<b>Vienna</b><br/>Test marker')
+                    .openPopup();
+                    
+                L.marker([47.8095, 13.0550]).addTo(map)
+                    .bindPopup('<b>Salzburg</b><br/>Test destination');
+                
+                // Test-Route (gerade Linie)
+                var testRoute = [
+                    [48.2082, 16.3738],
+                    [47.8095, 13.0550]
+                ];
+                
+                L.polyline(testRoute, {
+                    color: 'red',
+                    weight: 4,
+                    opacity: 0.8
+                }).addTo(map);
+                
+                console.log('Test map loaded successfully!');
+            </script>
+        </body>
+        </html>
+        """;
+
+        Platform.runLater(() -> {
+            System.out.println("Loading test map...");
+            mapWebView.getEngine().loadContent(testHtml);
+        });
+    }
+
     private String generateMapHtml(String routeGeometry, double[] startCoords, double[] endCoords) {
-        String escapedRouteGeometry = routeGeometry != null ? routeGeometry.replace("\"", "\\\"") : "null";
+        // KEIN Escaping, sondern direkt als JS-Objekt einfügen!
+        String routeGeoJsonJs = (routeGeometry != null && !routeGeometry.equals("{}") && !routeGeometry.equals("null"))
+                ? routeGeometry
+                : "null";
 
         return "<!DOCTYPE html>" +
                 "<html>" +
@@ -491,7 +646,7 @@ public class TourDetailsController {
                 "L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {" +
                 "attribution: '© OpenStreetMap contributors'" +
                 "}).addTo(map);" +
-                "var routeGeoJSON = " + escapedRouteGeometry + ";" +
+                "var routeGeoJSON = " + routeGeoJsonJs + ";" +
                 "if (routeGeoJSON && routeGeoJSON !== null) {" +
                 "var routeLayer = L.geoJSON(routeGeoJSON, {" +
                 "style: { color: '#3388ff', weight: 5, opacity: 0.8 }" +
@@ -563,6 +718,23 @@ public class TourDetailsController {
             tourImageView.setImage(null);
             imageStatusLabel.setText("Error loading image");
             System.err.println("Error loading image: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    void onSaveTourDetailsClicked() {
+        if (currentTour == null) {
+            showAlert("No Tour Selected", "Please select a tour-entry from the list.");
+            return;
+        }
+        try {
+            // Tour im ViewModel/Backend aktualisieren
+            tourDetailsViewModel.updateTourModel();
+            showAlert("Saved", "Tour details have been saved successfully.");
+            updateTourTitle();
+
+        } catch (NumberFormatException e) {
+            showAlert("Invalid Entry", "Please enter valid numbers for distance and estimated time.");
         }
     }
 }

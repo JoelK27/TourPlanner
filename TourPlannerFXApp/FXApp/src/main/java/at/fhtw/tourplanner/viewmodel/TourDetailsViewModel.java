@@ -108,7 +108,7 @@ public class TourDetailsViewModel {
         isInitValue = false;
     }
 
-    private void updateTourModel() {
+    public void updateTourModel() {
         if (!isInitValue && tourModel != null) {
             apiService.updateTour(
                     tourModel,

@@ -15,45 +15,73 @@
     <Label fx:id="tourTitleLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
     <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
         <Tab text="Tour details">
-            <VBox spacing="10">
-                <padding>
-                    <Insets top="5" right="5" bottom="5" left="5"/>
-                </padding>
-                <Label prefHeight="35.0" prefWidth="104.0" text="Tour Details" />
-                <TextField fx:id="nameField" promptText="Tour name" />
-                <TextArea fx:id="descriptionArea" prefHeight="62.0" prefWidth="473.0" promptText="Tour Description" />
-                <TextField fx:id="fromField" promptText="From" />
-                <TextField fx:id="toField" promptText="To" />
-                <ChoiceBox fx:id="transportTypeChoice" prefHeight="25.0" prefWidth="472.0" maxWidth="Infinity" />
-                <TextField fx:id="distanceField" promptText="Tour distance" />
-                <TextField fx:id="estimatedTimeField" promptText="Estimated time" />
-                <Label text="Route Map: " style="-fx-background-color: lightgray; -fx-alignment: center;"
-                       VBox.vgrow="ALWAYS" maxWidth="Infinity" maxHeight="Infinity" />
-                <WebView fx:id="mapWebView" prefHeight="300" prefWidth="400" />
-                <ImageView fx:id="tourImageView"
-                        fitHeight="200" 
-                        fitWidth="400" 
-                        preserveRatio="true" 
-                        styleClass="tour-image"
-                        VBox.vgrow="ALWAYS"/>
-                <Label fx:id="imageStatusLabel" 
-                    text="No image available" 
-                    styleClass="image-status"
-                    textAlignment="CENTER"/>
-                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="action-button-bar">
-                    <Button text="Upload Image" onAction="#onUploadImageClicked" styleClass="action-button"/>
-                    <Button text="Save Image" onAction="#onDownloadImageClicked" styleClass="action-button"/>
-                    <Button text="Tour-Report" onAction="#onSaveTourReportClicked" styleClass="action-button"/>
-                    <Button text="Summary-Report" onAction="#onSaveSummaryReportClicked" styleClass="action-button"/>
-                    <Button text="Tour Stats" onAction="#onShowTourStatsClicked" styleClass="action-button"/>
-                    <Button fx:id="calculateRouteButton" text="Calculate Route" onAction="#onCalculateRoutePressed" />
-                    <Button text="Show Weather" onAction="#onShowWeatherClicked" styleClass="action-button"/>
-                </HBox>            
-            </VBox>
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="5" right="5" bottom="5" left="5"/>
+                    </padding>
+                    <Label prefHeight="35.0" prefWidth="104.0" text="Tour Details" />
+                    <TextField fx:id="nameField" promptText="Tour name" />
+                    <TextArea fx:id="descriptionArea" prefHeight="62.0" prefWidth="473.0" promptText="Tour Description" />
+                    <TextField fx:id="fromField" promptText="From" />
+                    <TextField fx:id="toField" promptText="To" />
+                    <ChoiceBox fx:id="transportTypeChoice" prefHeight="25.0" prefWidth="472.0" maxWidth="Infinity" />
+                    <TextField fx:id="distanceField" promptText="Tour distance" />
+                    <TextField fx:id="estimatedTimeField" promptText="Estimated time" />
+
+                    <!-- OPTIMIERTE MAP-SEKTION -->
+                    <VBox spacing="5" styleClass="map-container">
+                        <Label text="Route Map:" styleClass="map-title" />
+                        <WebView fx:id="mapWebView"
+                                 prefHeight="280"
+                                 prefWidth="600"
+                                 minHeight="200"
+                                 maxHeight="350"
+                                 styleClass="map-webview" />
+                    </VBox>
+
+                    <!-- BUTTON-SEKTION NACH OBEN VERSCHOBEN -->
+                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="action-button-bar">
+                        <Button fx:id="calculateRouteButton" text="Calculate Route" onAction="#onCalculateRoutePressed" styleClass="calculate-route-button"/>
+                        <Button text="Tour Stats" onAction="#onShowTourStatsClicked" styleClass="action-button"/>
+                        <Button text="Show Weather" onAction="#onShowWeatherClicked" styleClass="action-button"/>
+                    </HBox>
+
+                    <!-- KOMPAKTE IMAGE-SEKTION -->
+                    <VBox spacing="5" styleClass="image-container-compact">
+                        <Label text="Tour Image:" styleClass="image-title" />
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <ImageView fx:id="tourImageView"
+                                       fitHeight="120"
+                                       fitWidth="200"
+                                       preserveRatio="true"
+                                       styleClass="tour-image-compact"/>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label fx:id="imageStatusLabel"
+                                       text="No image available"
+                                       styleClass="image-status"/>
+                                <HBox spacing="5">
+                                    <Button text="Upload" onAction="#onUploadImageClicked" styleClass="compact-button"/>
+                                    <Button text="Save" onAction="#onDownloadImageClicked" styleClass="compact-button"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <!-- WEITERE AKTIONEN -->
+                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="secondary-button-bar">
+                        <Button text="Tour-Report" onAction="#onSaveTourReportClicked" styleClass="secondary-button"/>
+                        <Button text="Summary-Report" onAction="#onSaveSummaryReportClicked" styleClass="secondary-button"/>
+                    </HBox>
+                    <HBox spacing="10" alignment="CENTER_RIGHT" styleClass="secondary-button-bar">
+                        <Button text="Save Changes" onAction="#onSaveTourDetailsClicked" styleClass="secondary-button"/>
+                    </HBox>
+                </VBox>
+            </ScrollPane>
         </Tab>
         <Tab text="Tour logs">
             <SplitPane dividerPositions="0.3" VBox.vgrow="ALWAYS">
-                <!-- Linke Seite: Listenansicht und Aktionsbuttons -->
+                <!-- ...existing code... -->
                 <VBox spacing="5">
                     <ToolBar>
                         <Button text="+" onAction="#onAddLogButtonPressed"/>
@@ -62,7 +90,6 @@
                     <ListView fx:id="logListView" VBox.vgrow="ALWAYS" />
                 </VBox>
 
-                <!-- Rechte Seite: Detailansicht des ausgewählten Logs -->
                 <VBox spacing="10">
                     <padding>
                         <Insets top="5" right="5" bottom="5" left="5"/>
