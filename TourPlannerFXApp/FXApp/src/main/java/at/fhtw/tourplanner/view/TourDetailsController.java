@@ -18,6 +18,7 @@ import java.sql.Time;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import java.io.ByteArrayInputStream;
+import java.util.Map;
 
 public class TourDetailsController {
     // Tour Details Tab
@@ -41,6 +42,8 @@ public class TourDetailsController {
     @FXML public TextField logTotalDistanceField;
     @FXML public TextField logTotalTimeField;
     @FXML public TextField logRatingField;
+    @FXML public Button calculateRouteButton;
+    @FXML public WebView mapWebView;
 
     private final TourDetailsViewModel tourDetailsViewModel;
     private final ObservableList<Log> observableLogs = FXCollections.observableArrayList();
@@ -307,6 +310,105 @@ public class TourDetailsController {
         showAlert("Weather Information",
                 "Start: " + weather.get("fromWeather") +
                 "\nGoal: " + weather.get("toWeather"));
+    }
+
+    @FXML
+    void onCalculateRoutePressed() {
+        String fromLocation = fromField.getText().trim();
+        String toLocation = toField.getText().trim();
+        String transportType = transportTypeChoice.getValue();
+
+        if (fromLocation.isEmpty() || toLocation.isEmpty()) {
+            showAlert("Missing Information", "Please enter both from and to locations.");
+            return;
+        }
+
+        try {
+            Map<String, Object> routeInfo = TourApiService.getInstance()
+                    .calculateRoute(fromLocation, toLocation, transportType);
+
+            if (!routeInfo.isEmpty()) {
+                // Update distance and time fields
+                double distance = (Double) routeInfo.get("distance");
+                double estimatedTime = (Double) routeInfo.get("estimatedTime");
+
+                distanceField.setText(String.format("%.2f", distance));
+                estimatedTimeField.setText(String.format("%.2f", estimatedTime));
+
+                // Update map
+                updateMap(routeInfo);
+
+                showAlert("Route Calculated",
+                        String.format("Distance: %.2f km\nEstimated Time: %.2f hours",
+                                distance, estimatedTime));
+            }
+        } catch (Exception e) {
+            showAlert("Error", "Failed to calculate route: " + e.getMessage());
+        }
+    }
+
+    private void updateMap(Map<String, Object> routeInfo) {
+        try {
+            String routeGeometry = (String) routeInfo.get("routeGeometry");
+            double[] startCoords = (double[]) routeInfo.get("startCoords");
+            double[] endCoords = (double[]) routeInfo.get("endCoords");
+
+            String mapHtml = generateMapHtml(routeGeometry, startCoords, endCoords);
+            mapWebView.getEngine().loadContent(mapHtml);
+        } catch (Exception e) {
+            System.err.println("Error updating map: " + e.getMessage());
+        }
+    }
+
+    private String generateMapHtml(String routeGeometry, double[] startCoords, double[] endCoords) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8" />
+                <title>Tour Map</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+                <style>
+                    body { margin: 0; padding: 0; }
+                    #map { height: 100vh; width: 100%; }
+                </style>
+            </head>
+            <body>
+                <div id="map"></div>
+                <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+                <script>
+                    var map = L.map('map');
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(map);
+                    
+                    // Add route geometry
+                    var routeGeoJSON = """ + routeGeometry + """;
+                    var routeLayer = L.geoJSON(routeGeoJSON, {
+                        style: {
+                            color: '#3388ff',
+                            weight: 5,
+                            opacity: 0.8
+                        }
+                    }).addTo(map);
+                    
+                    // Add markers
+                    L.marker([""" + startCoords[1] + """, """ + startCoords[0] + """])
+                        .addTo(map)
+                        .bindPopup('Start');
+                    
+                    L.marker([""" + endCoords[1] + """, """ + endCoords[0] + """])
+                        .addTo(map)
+                        .bindPopup('End');
+                    
+                    // Fit map to route
+                    map.fitBounds(routeLayer.getBounds());
+                </script>
+            </body>
+            </html>
+            """;
     }
 
     private boolean validateLogFields() {

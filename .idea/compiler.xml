@@ -11,6 +11,9 @@
         <module name="tourplanner" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="tourplanner" target="21" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

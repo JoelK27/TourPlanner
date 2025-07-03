@@ -5,7 +5,9 @@ import at.fhtw.tourplanner.model.Tour;
 import at.fhtw.tourplanner.repo.LogRepository;
 import at.fhtw.tourplanner.repo.TourRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -36,7 +38,7 @@ public class LogController {
 
     @PutMapping("/logs/{id}")
     public Log updateLog(@PathVariable int id, @RequestBody Log log) {
-        Log existingLog = logRepository.findById(id).orElseThrow();
+        Log existingLog = logRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Log not found"));
         // Felder aktualisieren
         existingLog.setDate(log.getDate());
         existingLog.setTime(log.getTime());

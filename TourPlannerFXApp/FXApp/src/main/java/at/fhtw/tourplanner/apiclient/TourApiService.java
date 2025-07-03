@@ -316,6 +316,23 @@ public class TourApiService {
         }
     }
 
+    // ====== ROUTE CALCULATION ======
+    public Map<String, Object> calculateRoute(String fromLocation, String toLocation, String transportType) {
+        try {
+            Map<String, String> routeRequest = new HashMap<>();
+            routeRequest.put("fromLocation", fromLocation);
+            routeRequest.put("toLocation", toLocation);
+            routeRequest.put("transportType", transportType);
+
+            String json = objectMapper.writeValueAsString(routeRequest);
+            String response = executePost(BASE_URL + "/api/tours/calculate-route", json);
+            return objectMapper.readValue(response, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            System.err.println("Error calculating route: " + e.getMessage());
+            return new HashMap<>();
+        }
+    }
+
     // ====== HTTP UTILITY METHODS ======
 
     private String executeGet(String url) throws IOException {

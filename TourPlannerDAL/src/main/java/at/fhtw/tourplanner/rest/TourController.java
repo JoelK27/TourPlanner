@@ -1,22 +1,21 @@
 package at.fhtw.tourplanner.rest;
 
+import at.fhtw.tourplanner.model.Log;
 import at.fhtw.tourplanner.model.Tour;
 import at.fhtw.tourplanner.repo.TourRepository;
 import at.fhtw.tourplanner.service.ImageService;
+import at.fhtw.tourplanner.service.OpenRouteService;
 import at.fhtw.tourplanner.service.ReportService;
 import at.fhtw.tourplanner.service.StatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import jakarta.persistence.EntityManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/tours")
@@ -27,6 +26,7 @@ public class TourController {
     private final ReportService reportService;
     private final ImageService imageService;
     private final StatsService statsService;
+    private final OpenRouteService openRouteService;
 
     @GetMapping
     public List<Tour> getAllTours() {
@@ -64,15 +64,29 @@ public class TourController {
     public List<Tour> importTours(@RequestBody List<Tour> tours) {
         List<Tour> savedTours = new ArrayList<>();
         for (Tour tour : tours) {
-            Tour newTour = new Tour();
-            newTour.setName(tour.getName());
-            newTour.setTourDescription(tour.getTourDescription());
-            newTour.setFromLocation(tour.getFromLocation());
-            newTour.setToLocation(tour.getToLocation());
-            newTour.setTransportType(tour.getTransportType());
-            newTour.setTourDistance(tour.getTourDistance());
-            newTour.setEstimatedTime(tour.getEstimatedTime());
-            savedTours.add(tourRepository.save(newTour));
+            // Setze Tour-ID auf 0, damit immer eine neue Tour angelegt wird
+            tour.setId(0);
+
+            // Logs neu aufbauen und IDs auf 0 setzen
+            List<Log> newLogs = new ArrayList<>();
+            if (tour.getLogs() != null) {
+                for (Log log : tour.getLogs()) {
+                    Log newLog = new Log();
+                    newLog.setId(0);
+                    newLog.setDate(log.getDate());
+                    newLog.setTime(log.getTime());
+                    newLog.setComment(log.getComment());
+                    newLog.setDifficulty(log.getDifficulty());
+                    newLog.setTotalDistance(log.getTotalDistance());
+                    newLog.setTotalTime(log.getTotalTime());
+                    newLog.setRating(log.getRating());
+                    newLog.setTour(tour); // Beziehung setzen
+                    newLogs.add(newLog);
+                }
+            }
+            tour.setLogs(newLogs);
+
+            savedTours.add(tourRepository.save(tour));
         }
         return savedTours;
     }
@@ -108,11 +122,50 @@ public class TourController {
     @GetMapping("/{id}/image")
     public ResponseEntity<Resource> getTourImage(@PathVariable int id) {
         Resource image = imageService.loadTourImage(id);
+        if (image == null || !image.exists()) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok().body(image);
     }
 
     @GetMapping("/{id}/stats")
     public Map<String, Object> getTourStats(@PathVariable int id) {
         return statsService.getTourStats(id);
+    }
+
+    @PostMapping("/calculate-route")
+    public Map<String, Object> calculateRoute(@RequestBody RouteRequest request) {
+        try {
+            OpenRouteService.RouteInfo routeInfo = openRouteService.getRouteInfo(
+                    request.getFromLocation(),
+                    request.getToLocation(),
+                    request.getTransportType()
+            );
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("distance", routeInfo.distance);
+            result.put("estimatedTime", routeInfo.duration);
+            result.put("routeGeometry", routeInfo.routeGeometry);
+            result.put("startCoords", routeInfo.startCoords);
+            result.put("endCoords", routeInfo.endCoords);
+
+            return result;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    public static class RouteRequest {
+        private String fromLocation;
+        private String toLocation;
+        private String transportType;
+
+        // Getters and setters
+        public String getFromLocation() { return fromLocation; }
+        public void setFromLocation(String fromLocation) { this.fromLocation = fromLocation; }
+        public String getToLocation() { return toLocation; }
+        public void setToLocation(String toLocation) { this.toLocation = toLocation; }
+        public String getTransportType() { return transportType; }
+        public void setTransportType(String transportType) { this.transportType = transportType; }
     }
 }

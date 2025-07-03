@@ -26,8 +26,9 @@
                 <ChoiceBox fx:id="transportTypeChoice" prefHeight="25.0" prefWidth="472.0" maxWidth="Infinity" />
                 <TextField fx:id="distanceField" promptText="Tour distance" />
                 <TextField fx:id="estimatedTimeField" promptText="Estimated time" />
-                <Label text="*Map Placeholder*" style="-fx-background-color: lightgray; -fx-alignment: center;"
+                <Label text="Route Map: " style="-fx-background-color: lightgray; -fx-alignment: center;"
                        VBox.vgrow="ALWAYS" maxWidth="Infinity" maxHeight="Infinity" />
+                <WebView fx:id="mapWebView" prefHeight="300" prefWidth="400" />
                 <!-- Ersetze das Label "*Map Placeholder*" durch: -->
                 <ImageView fx:id="tourImageView" 
                         fitHeight="200" 
@@ -45,6 +46,7 @@
                     <Button text="Tour-Report" onAction="#onSaveTourReportClicked" styleClass="action-button"/>
                     <Button text="Summary-Report" onAction="#onSaveSummaryReportClicked" styleClass="action-button"/>
                     <Button text="Tour Stats" onAction="#onShowTourStatsClicked" styleClass="action-button"/>
+                    <Button fx:id="calculateRouteButton" text="Calculate Route" onAction="#onCalculateRoutePressed" />
                     <Button text="Show Weather" onAction="#onShowWeatherClicked" styleClass="action-button"/>
                 </HBox>            
             </VBox>
