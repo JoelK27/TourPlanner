@@ -4,11 +4,13 @@ import at.fhtw.tourplanner.apiclient.TourApiService;
 import at.fhtw.tourplanner.model.Log;
 import at.fhtw.tourplanner.model.Tour;
 import at.fhtw.tourplanner.viewmodel.TourDetailsViewModel;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.util.converter.NumberStringConverter;
 
@@ -18,6 +20,7 @@ import java.sql.Time;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import java.io.ByteArrayInputStream;
+import java.util.List;
 import java.util.Map;
 
 public class TourDetailsController {
@@ -87,6 +90,25 @@ public class TourDetailsController {
                 new NumberStringConverter()
         );
 
+        Platform.runLater(() -> {
+            if (mapWebView != null) {
+                // Error Handler für WebView
+                mapWebView.getEngine().setOnError(event -> {
+                    System.err.println("WebView Error: " + event.getMessage());
+                });
+
+                // Load Handler für WebView
+                mapWebView.getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+                    System.out.println("WebView Load State: " + newValue);
+                    if (newValue == javafx.concurrent.Worker.State.FAILED) {
+                        System.err.println("WebView failed to load content");
+                    }
+                });
+
+                showSimpleMap(); // Zeige Standard-Karte beim Start
+            }
+        });
+
         // Setup für die Log-ListView
         logListView.setItems(tourDetailsViewModel.getLogs());
 
@@ -143,8 +165,62 @@ public class TourDetailsController {
     public void setTour(Tour tour) {
         this.currentTour = tour;
         tourDetailsViewModel.setTourModel(tour);
-        updateTourTitle();
-        loadAndDisplayTourImage(); 
+
+        if (tour != null) {
+            updateTourTitle();
+            loadAndDisplayTourImage();
+
+            // Automatisch Route berechnen und Karte anzeigen, falls From/To vorhanden
+            if (tour.getFrom() != null && tour.getTo() != null &&
+                    !tour.getFrom().isEmpty() && !tour.getTo().isEmpty()) {
+
+                // Kleine Verzögerung, damit die UI-Elemente geladen sind
+                Platform.runLater(() -> {
+                    try {
+                        Map<String, Object> routeInfo = TourApiService.getInstance()
+                                .calculateRoute(tour.getFrom(), tour.getTo(),
+                                        tour.getTransportType());
+                        updateMap(routeInfo);
+                    } catch (Exception e) {
+                        System.err.println("Error loading map for tour: " + e.getMessage());
+                        // Zeige eine einfache Karte ohne Route
+                        showSimpleMap();
+                    }
+                });
+            } else {
+                // Zeige eine leere Karte
+                showSimpleMap();
+            }
+        } else {
+            clearFields();
+        }
+    }
+
+    private void showSimpleMap() {
+        // Zeige eine einfache Karte ohne Route
+        String simpleMapHtml = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8" />
+            <title>Tour Map</title>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+            <style>body { margin: 0; padding: 0; } #map { height: 100vh; width: 100%; }</style>
+        </head>
+        <body>
+            <div id="map"></div>
+            <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+            <script>
+                var map = L.map('map').setView([48.2082, 16.3738], 6); // Zentriert auf Österreich
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+            </script>
+        </body>
+        </html>
+        """;
+
+        mapWebView.getEngine().loadContent(simpleMapHtml);
     }
 
     public void clearFields() {
@@ -343,72 +419,92 @@ public class TourDetailsController {
                                 distance, estimatedTime));
             }
         } catch (Exception e) {
+            System.err.println("Error calculating route: " + e.getMessage());
             showAlert("Error", "Failed to calculate route: " + e.getMessage());
+            // Fallback: Zeige einfache Karte
+            showSimpleMap();
         }
     }
 
     private void updateMap(Map<String, Object> routeInfo) {
         try {
+            System.out.println("=== UpdateMap Debug ===");
+            System.out.println("RouteInfo received: " + routeInfo);
+
             String routeGeometry = (String) routeInfo.get("routeGeometry");
-            double[] startCoords = (double[]) routeInfo.get("startCoords");
-            double[] endCoords = (double[]) routeInfo.get("endCoords");
+            System.out.println("Route Geometry: " + routeGeometry);
+
+            // Korrigiere die Konvertierung von ArrayList zu double[]
+            List<Double> startCoordsList = (List<Double>) routeInfo.get("startCoords");
+            List<Double> endCoordsList = (List<Double>) routeInfo.get("endCoords");
+
+            System.out.println("Start Coords List: " + startCoordsList);
+            System.out.println("End Coords List: " + endCoordsList);
+
+            if (startCoordsList == null || endCoordsList == null) {
+                System.err.println("ERROR: Coordinates are null!");
+                showSimpleMap();
+                return;
+            }
+
+            double[] startCoords = startCoordsList.stream().mapToDouble(Double::doubleValue).toArray();
+            double[] endCoords = endCoordsList.stream().mapToDouble(Double::doubleValue).toArray();
+
+            System.out.println("Start Coords Array: [" + startCoords[0] + ", " + startCoords[1] + "]");
+            System.out.println("End Coords Array: [" + endCoords[0] + ", " + endCoords[1] + "]");
 
             String mapHtml = generateMapHtml(routeGeometry, startCoords, endCoords);
-            mapWebView.getEngine().loadContent(mapHtml);
+            System.out.println("Generated HTML length: " + mapHtml.length());
+
+            // WebView auf JavaFX Application Thread laden
+            Platform.runLater(() -> {
+                System.out.println("Loading HTML into WebView...");
+                mapWebView.getEngine().loadContent(mapHtml);
+                System.out.println("HTML loaded into WebView");
+            });
+
+            System.out.println("========================");
         } catch (Exception e) {
             System.err.println("Error updating map: " + e.getMessage());
+            e.printStackTrace();
+            showSimpleMap();
         }
     }
 
     private String generateMapHtml(String routeGeometry, double[] startCoords, double[] endCoords) {
-        return """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8" />
-                <title>Tour Map</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-                <style>
-                    body { margin: 0; padding: 0; }
-                    #map { height: 100vh; width: 100%; }
-                </style>
-            </head>
-            <body>
-                <div id="map"></div>
-                <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-                <script>
-                    var map = L.map('map');
-                    
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '© OpenStreetMap contributors'
-                    }).addTo(map);
-                    
-                    // Add route geometry
-                    var routeGeoJSON = """ + routeGeometry + """;
-                    var routeLayer = L.geoJSON(routeGeoJSON, {
-                        style: {
-                            color: '#3388ff',
-                            weight: 5,
-                            opacity: 0.8
-                        }
-                    }).addTo(map);
-                    
-                    // Add markers
-                    L.marker([""" + startCoords[1] + """, """ + startCoords[0] + """])
-                        .addTo(map)
-                        .bindPopup('Start');
-                    
-                    L.marker([""" + endCoords[1] + """, """ + endCoords[0] + """])
-                        .addTo(map)
-                        .bindPopup('End');
-                    
-                    // Fit map to route
-                    map.fitBounds(routeLayer.getBounds());
-                </script>
-            </body>
-            </html>
-            """;
+        String escapedRouteGeometry = routeGeometry != null ? routeGeometry.replace("\"", "\\\"") : "null";
+
+        return "<!DOCTYPE html>" +
+                "<html>" +
+                "<head>" +
+                "<meta charset=\"utf-8\" />" +
+                "<title>Tour Map</title>" +
+                "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
+                "<link rel=\"stylesheet\" href=\"https://unpkg.com/leaflet@1.7.1/dist/leaflet.css\" />" +
+                "<style>body { margin: 0; padding: 0; } #map { height: 100vh; width: 100%; }</style>" +
+                "</head>" +
+                "<body>" +
+                "<div id=\"map\"></div>" +
+                "<script src=\"https://unpkg.com/leaflet@1.7.1/dist/leaflet.js\"></script>" +
+                "<script>" +
+                "var map = L.map('map');" +
+                "L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {" +
+                "attribution: '© OpenStreetMap contributors'" +
+                "}).addTo(map);" +
+                "var routeGeoJSON = " + escapedRouteGeometry + ";" +
+                "if (routeGeoJSON && routeGeoJSON !== null) {" +
+                "var routeLayer = L.geoJSON(routeGeoJSON, {" +
+                "style: { color: '#3388ff', weight: 5, opacity: 0.8 }" +
+                "}).addTo(map);" +
+                "map.fitBounds(routeLayer.getBounds());" +
+                "} else {" +
+                "map.setView([" + startCoords[1] + ", " + startCoords[0] + "], 10);" +
+                "}" +
+                "L.marker([" + startCoords[1] + ", " + startCoords[0] + "]).addTo(map).bindPopup('Start');" +
+                "L.marker([" + endCoords[1] + ", " + endCoords[0] + "]).addTo(map).bindPopup('End');" +
+                "</script>" +
+                "</body>" +
+                "</html>";
     }
 
     private boolean validateLogFields() {

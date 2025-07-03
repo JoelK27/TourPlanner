@@ -319,17 +319,18 @@ public class TourApiService {
     // ====== ROUTE CALCULATION ======
     public Map<String, Object> calculateRoute(String fromLocation, String toLocation, String transportType) {
         try {
-            Map<String, String> routeRequest = new HashMap<>();
-            routeRequest.put("fromLocation", fromLocation);
-            routeRequest.put("toLocation", toLocation);
-            routeRequest.put("transportType", transportType);
+            Map<String, String> requestBody = new HashMap<>();
+            requestBody.put("fromLocation", fromLocation);
+            requestBody.put("toLocation", toLocation);
+            requestBody.put("transportType", transportType);
 
-            String json = objectMapper.writeValueAsString(routeRequest);
-            String response = executePost(BASE_URL + "/api/tours/calculate-route", json);
-            return objectMapper.readValue(response, new TypeReference<Map<String, Object>>() {});
+            String jsonRequest = objectMapper.writeValueAsString(requestBody);
+            String response = executePost(BASE_URL + "/api/tours/calculate-route", jsonRequest);
+
+            return objectMapper.readValue(response, Map.class);
         } catch (Exception e) {
             System.err.println("Error calculating route: " + e.getMessage());
-            return new HashMap<>();
+            throw new RuntimeException("API error: " + e.getMessage());
         }
     }
 
