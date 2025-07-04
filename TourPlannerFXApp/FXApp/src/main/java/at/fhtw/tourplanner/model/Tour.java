@@ -1,5 +1,6 @@
 package at.fhtw.tourplanner.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,7 +19,12 @@ public class Tour implements Serializable {
     private double tourDistance;
     private double estimatedTime;
 
-    // Füge das Feld hinzu:
+    // Routingdaten für statische Karte
+    private String encodedRouteGeometry; // GeoJSON-String
+    private String startCoords; // z.B. "[16.3725,48.2082]"
+    private String endCoords;   // z.B. "[13.0433,47.8222]"
+    private String quickNotes;
+
     private List<Log> logs;
 
     public Tour() {
@@ -34,6 +40,26 @@ public class Tour implements Serializable {
         this.transportType = transportType;
         this.tourDistance = tourDistance;
         this.estimatedTime = estimatedTime;
+        this.quickNotes = "";
+    }
+
+    // Hilfsmethoden für double[] - mit @JsonIgnore markiert
+    @JsonIgnore
+    public double[] getStartCoordsAsArray() {
+        if (startCoords == null) return null;
+        String s = startCoords.replaceAll("[\\[\\]\\s]", "");
+        String[] parts = s.split(",");
+        if (parts.length != 2) return null;
+        return new double[]{Double.parseDouble(parts[0]), Double.parseDouble(parts[1])};
+    }
+
+    @JsonIgnore
+    public double[] getEndCoordsAsArray() {
+        if (endCoords == null) return null;
+        String s = endCoords.replaceAll("[\\[\\]\\s]", "");
+        String[] parts = s.split(",");
+        if (parts.length != 2) return null;
+        return new double[]{Double.parseDouble(parts[0]), Double.parseDouble(parts[1])};
     }
 
     @Override

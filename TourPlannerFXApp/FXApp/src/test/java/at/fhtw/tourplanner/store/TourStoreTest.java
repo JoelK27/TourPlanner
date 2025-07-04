@@ -1,4 +1,4 @@
-package at.fhtw.tourplanner.bl;
+package at.fhtw.tourplanner.store;
 
 import at.fhtw.tourplanner.model.Tour;
 import at.fhtw.tourplanner.model.Log;

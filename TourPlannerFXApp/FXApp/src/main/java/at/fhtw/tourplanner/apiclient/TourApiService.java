@@ -271,48 +271,34 @@ public class TourApiService {
         }
     }
 
-    // ====== IMAGE UPLOAD AND DOWNLOAD ======
+    // ====== QUICK NOTES FEATURE ======
 
-    public void uploadTourImage(int tourId, File imageFile) {
-        try (CloseableHttpClient httpClient = HttpClients.createDefault();
-            FileInputStream fis = new FileInputStream(imageFile)) {
-
-            HttpPost request = new HttpPost(BASE_URL + "/api/tours/" + tourId + "/image");
-            byte[] imageBytes = fis.readAllBytes();
-            request.setEntity(new ByteArrayEntity(imageBytes));
-            request.setHeader("Content-Type", "application/octet-stream");
-            request.setHeader("Accept", "application/json");
-
-            try (CloseableHttpResponse response = httpClient.execute(request)) {
-                handleHttpError(response);
-            }
-        } catch (Exception e) {
-            System.err.println("Error uploading image: " + e.getMessage());
-        }
-    }
-
-    public byte[] downloadTourImage(int tourId) {
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet request = new HttpGet(BASE_URL + "/api/tours/" + tourId + "/image");
-            try (CloseableHttpResponse response = httpClient.execute(request)) {
-                handleHttpError(response);
-                return EntityUtils.toByteArray(response.getEntity());
-            }
-        } catch (Exception e) {
-            System.err.println("Error downloading image: " + e.getMessage());
-            return null;
-        }
-    }
-
-    // ====== UNIQUE FEATURE ======
-
-    public Map<String, Object> getTourWeather(int tourId) {
+    public Map<String, String> updateTourNotes(int tourId, String notes) {
         try {
-            String response = executeGet(BASE_URL + "/api/tours/" + tourId + "/weather");
-            return objectMapper.readValue(response, new TypeReference<Map<String, Object>>() {});
+            Map<String, String> notesData = new HashMap<>();
+            notesData.put("notes", notes);
+            
+            String jsonRequest = objectMapper.writeValueAsString(notesData);
+            String response = executePut(BASE_URL + "/api/tours/" + tourId + "/notes", jsonRequest);
+            return objectMapper.readValue(response, new TypeReference<Map<String, String>>() {});
         } catch (Exception e) {
-            System.err.println("Error fetching weather: " + e.getMessage());
-            return new HashMap<>();
+            System.err.println("Error updating notes: " + e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return error;
+        }
+    }
+
+    public Map<String, String> getTourNotes(int tourId) {
+        try {
+            String response = executeGet(BASE_URL + "/api/tours/" + tourId + "/notes");
+            return objectMapper.readValue(response, new TypeReference<Map<String, String>>() {});
+        } catch (Exception e) {
+            System.err.println("Error fetching notes: " + e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            error.put("notes", "");
+            return error;
         }
     }
 

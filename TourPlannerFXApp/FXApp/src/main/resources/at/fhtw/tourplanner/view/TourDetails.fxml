@@ -3,134 +3,446 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.web.WebView?>
+<?import java.lang.String?>
+
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="at.fhtw.tourplanner.view.TourDetailsController"
-      spacing="10"
-      stylesheets="@styles/TourDetails.css">
+      spacing="15">
+    <styleClass>
+        <String fx:value="tour-details-container" />
+    </styleClass>
     <padding>
-        <Insets top="10" right="10" bottom="10" left="10"/>
+        <Insets top="15" right="20" bottom="15" left="20"/>
     </padding>
-    <Label fx:id="tourTitleLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    
+    <!-- HEADER MIT TITEL -->
+    <VBox spacing="5">
+        <styleClass>
+            <String fx:value="header-section" />
+        </styleClass>
+        <Label fx:id="tourTitleLabel" text="Select a Tour">
+            <styleClass>
+                <String fx:value="tour-title" />
+            </styleClass>
+        </Label>
+        <Separator />
+    </VBox>
+
+    <!-- HAUPTINHALT MIT TABS -->
     <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
-        <Tab text="Tour details">
+        <styleClass>
+            <String fx:value="modern-tab-pane" />
+        </styleClass>
+        
+        <!-- ===== TOUR DETAILS TAB ===== -->
+        <Tab text="📋 Tour Details">
+            <styleClass>
+                <String fx:value="details-tab" />
+            </styleClass>
             <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
-                <VBox spacing="10">
+                <styleClass>
+                    <String fx:value="details-scroll-pane" />
+                </styleClass>
+                <VBox spacing="20">
                     <padding>
-                        <Insets top="5" right="5" bottom="5" left="5"/>
+                        <Insets top="20" right="15" bottom="20" left="15"/>
                     </padding>
-                    <Label prefHeight="35.0" prefWidth="104.0" text="Tour Details" />
-                    <TextField fx:id="nameField" promptText="Tour name" />
-                    <TextArea fx:id="descriptionArea" prefHeight="62.0" prefWidth="473.0" promptText="Tour Description" />
-                    <TextField fx:id="fromField" promptText="From" />
-                    <TextField fx:id="toField" promptText="To" />
-                    <ChoiceBox fx:id="transportTypeChoice" prefHeight="25.0" prefWidth="472.0" maxWidth="Infinity" />
-                    <TextField fx:id="distanceField" promptText="Tour distance" />
-                    <TextField fx:id="estimatedTimeField" promptText="Estimated time" />
 
-                    <!-- OPTIMIERTE MAP-SEKTION -->
-                    <VBox spacing="5" styleClass="map-container">
-                        <Label text="Route Map:" styleClass="map-title" />
-                        <WebView fx:id="mapWebView"
-                                 prefHeight="280"
-                                 prefWidth="600"
-                                 minHeight="200"
-                                 maxHeight="350"
-                                 styleClass="map-webview" />
+                    <!-- BASIC INFO SECTION -->
+                    <VBox spacing="15">
+                        <styleClass>
+                            <String fx:value="form-section" />
+                        </styleClass>
+                        <Label text="✏️ Basic Information">
+                            <styleClass>
+                                <String fx:value="section-title" />
+                            </styleClass>
+                        </Label>
+                        
+                        <GridPane hgap="15" vgap="12">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="120" prefWidth="120" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                            </columnConstraints>
+                            
+                            <Label text="Tour Name:" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                                <styleClass>
+                                    <String fx:value="field-label" />
+                                </styleClass>
+                            </Label>
+                            <TextField fx:id="nameField" promptText="Enter tour name..." 
+                                     GridPane.rowIndex="0" GridPane.columnIndex="1">
+                                <styleClass>
+                                    <String fx:value="modern-text-field" />
+                                </styleClass>
+                            </TextField>
+
+                            <Label text="Description:" GridPane.rowIndex="1" GridPane.columnIndex="0">
+                                <styleClass>
+                                    <String fx:value="field-label" />
+                                </styleClass>
+                            </Label>
+                            <TextArea fx:id="descriptionArea" prefRowCount="3" wrapText="true"
+                                    promptText="Describe your tour..." 
+                                    GridPane.rowIndex="1" GridPane.columnIndex="1">
+                                <styleClass>
+                                    <String fx:value="modern-text-area" />
+                                </styleClass>
+                            </TextArea>
+                        </GridPane>
                     </VBox>
 
-                    <!-- BUTTON-SEKTION NACH OBEN VERSCHOBEN -->
-                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="action-button-bar">
-                        <Button fx:id="calculateRouteButton" text="Calculate Route" onAction="#onCalculateRoutePressed" styleClass="calculate-route-button"/>
-                        <Button text="Tour Stats" onAction="#onShowTourStatsClicked" styleClass="action-button"/>
-                        <Button text="Show Weather" onAction="#onShowWeatherClicked" styleClass="action-button"/>
-                    </HBox>
+                    <!-- ROUTE SECTION -->
+                    <VBox spacing="15">
+                        <styleClass>
+                            <String fx:value="form-section" />
+                        </styleClass>
+                        <Label text="🗺️ Route Information">
+                            <styleClass>
+                                <String fx:value="section-title" />
+                            </styleClass>
+                        </Label>
+                        
+                        <GridPane hgap="15" vgap="12">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="120" prefWidth="120" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                                <ColumnConstraints hgrow="NEVER" minWidth="120" prefWidth="120" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                            </columnConstraints>
+                            
+                            <Label text="From:" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                                <styleClass>
+                                    <String fx:value="field-label" />
+                                </styleClass>
+                            </Label>
+                            <TextField fx:id="fromField" promptText="Starting location..." 
+                                     GridPane.rowIndex="0" GridPane.columnIndex="1">
+                                <styleClass>
+                                    <String fx:value="modern-text-field" />
+                                </styleClass>
+                            </TextField>
 
-                    <!-- KOMPAKTE IMAGE-SEKTION -->
-                    <VBox spacing="5" styleClass="image-container-compact">
-                        <Label text="Tour Image:" styleClass="image-title" />
+                            <Label text="To:" GridPane.rowIndex="0" GridPane.columnIndex="2">
+                                <styleClass>
+                                    <String fx:value="field-label" />
+                                </styleClass>
+                            </Label>
+                            <TextField fx:id="toField" promptText="Destination..." 
+                                     GridPane.rowIndex="0" GridPane.columnIndex="3">
+                                <styleClass>
+                                    <String fx:value="modern-text-field" />
+                                </styleClass>
+                            </TextField>
+
+                            <Label text="Transport:" GridPane.rowIndex="1" GridPane.columnIndex="0">
+                                <styleClass>
+                                    <String fx:value="field-label" />
+                                </styleClass>
+                            </Label>
+                            <ChoiceBox fx:id="transportTypeChoice" maxWidth="Infinity"
+                                     GridPane.rowIndex="1" GridPane.columnIndex="1">
+                                <styleClass>
+                                    <String fx:value="modern-choice-box" />
+                                </styleClass>
+                            </ChoiceBox>
+
+                            <Label text="Distance:" GridPane.rowIndex="1" GridPane.columnIndex="2">
+                                <styleClass>
+                                    <String fx:value="field-label" />
+                                </styleClass>
+                            </Label>
+                            <TextField fx:id="distanceField" promptText="km" 
+                                     GridPane.rowIndex="1" GridPane.columnIndex="3">
+                                <styleClass>
+                                    <String fx:value="modern-text-field" />
+                                </styleClass>
+                            </TextField>
+
+                            <Label text="Est. Time:" GridPane.rowIndex="2" GridPane.columnIndex="0">
+                                <styleClass>
+                                    <String fx:value="field-label" />
+                                </styleClass>
+                            </Label>
+                            <TextField fx:id="estimatedTimeField" promptText="hours" 
+                                     GridPane.rowIndex="2" GridPane.columnIndex="1">
+                                <styleClass>
+                                    <String fx:value="modern-text-field" />
+                                </styleClass>
+                            </TextField>
+                        </GridPane>
+                    </VBox>
+
+                    <!-- MAP SECTION -->
+                    <VBox spacing="10">
+                        <styleClass>
+                            <String fx:value="map-section" />
+                        </styleClass>
                         <HBox spacing="10" alignment="CENTER_LEFT">
-                            <ImageView fx:id="tourImageView"
-                                       fitHeight="120"
-                                       fitWidth="200"
-                                       preserveRatio="true"
-                                       styleClass="tour-image-compact"/>
-                            <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                <Label fx:id="imageStatusLabel"
-                                       text="No image available"
-                                       styleClass="image-status"/>
-                                <HBox spacing="5">
-                                    <Button text="Upload" onAction="#onUploadImageClicked" styleClass="compact-button"/>
-                                    <Button text="Save" onAction="#onDownloadImageClicked" styleClass="compact-button"/>
-                                </HBox>
-                            </VBox>
+                            <Label text="🗺️ Route Map">
+                                <styleClass>
+                                    <String fx:value="section-title" />
+                                </styleClass>
+                            </Label>
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Button fx:id="calculateRouteButton" text="🔄 Calculate Route" 
+                                   onAction="#onCalculateRoutePressed">
+                                <styleClass>
+                                    <String fx:value="primary-button" />
+                                </styleClass>
+                            </Button>
                         </HBox>
+                        
+                        <WebView fx:id="mapWebView" prefHeight="320" minHeight="250" maxHeight="400">
+                            <styleClass>
+                                <String fx:value="modern-map-view" />
+                            </styleClass>
+                        </WebView>
                     </VBox>
 
-                    <!-- WEITERE AKTIONEN -->
-                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="secondary-button-bar">
-                        <Button text="Tour-Report" onAction="#onSaveTourReportClicked" styleClass="secondary-button"/>
-                        <Button text="Summary-Report" onAction="#onSaveSummaryReportClicked" styleClass="secondary-button"/>
-                    </HBox>
-                    <HBox spacing="10" alignment="CENTER_RIGHT">
-                        <Button text="Save Changes" onAction="#onSaveTourDetailsClicked" styleClass="action-button"/>
+                    <!-- QUICK NOTES SECTION -->
+                    <VBox spacing="10">
+                        <styleClass>
+                            <String fx:value="notes-section" />
+                        </styleClass>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="📝 Quick Notes">
+                                <styleClass>
+                                    <String fx:value="section-title" />
+                                </styleClass>
+                            </Label>
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Button fx:id="saveNotesButton" text="💾 Save" onAction="#onSaveNotesClicked">
+                                <styleClass>
+                                    <String fx:value="success-button" />
+                                </styleClass>
+                            </Button>
+                            <Button text="📋 View All" onAction="#onShowAllNotesClicked">
+                                <styleClass>
+                                    <String fx:value="info-button" />
+                                </styleClass>
+                            </Button>
+                        </HBox>
+                        
+                        <TextArea fx:id="quickNotesArea" prefRowCount="3" wrapText="true"
+                                promptText="Add your personal notes about this tour...">
+                            <styleClass>
+                                <String fx:value="modern-text-area" />
+                            </styleClass>
+                        </TextArea>
+                    </VBox>
+
+                    <!-- ACTION BUTTONS -->
+                    <HBox spacing="15" alignment="CENTER">
+                        <styleClass>
+                            <String fx:value="action-bar" />
+                        </styleClass>
+                        <Button text="📊 Tour Stats" onAction="#onShowTourStatsClicked">
+                            <styleClass>
+                                <String fx:value="info-button" />
+                            </styleClass>
+                        </Button>
+                        <Button text="📄 Tour Report" onAction="#onSaveTourReportClicked">
+                            <styleClass>
+                                <String fx:value="secondary-button" />
+                            </styleClass>
+                        </Button>
+                        <Button text="📋 Summary Report" onAction="#onSaveSummaryReportClicked">
+                            <styleClass>
+                                <String fx:value="secondary-button" />
+                            </styleClass>
+                        </Button>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button text="💾 Save Tour" onAction="#onSaveTourDetailsClicked">
+                            <styleClass>
+                                <String fx:value="primary-button-large" />
+                            </styleClass>
+                        </Button>
                     </HBox>
                 </VBox>
             </ScrollPane>
         </Tab>
-        <Tab text="Tour logs">
-            <SplitPane dividerPositions="0.3" VBox.vgrow="ALWAYS">
-                <!-- ...existing code... -->
-                <VBox spacing="5">
-                    <ToolBar>
-                        <Button text="+" onAction="#onAddLogButtonPressed"/>
-                        <Button text="-" onAction="#onDeleteLogButtonPressed"/>
-                    </ToolBar>
-                    <ListView fx:id="logListView" VBox.vgrow="ALWAYS" />
+
+        <!-- ===== TOUR LOGS TAB ===== -->
+        <Tab text="📖 Tour Logs">
+            <styleClass>
+                <String fx:value="logs-tab" />
+            </styleClass>
+            <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
+                <styleClass>
+                    <String fx:value="modern-split-pane" />
+                </styleClass>
+                
+                <!-- LOG LIST SIDE -->
+                <VBox spacing="10">
+                    <styleClass>
+                        <String fx:value="log-list-panel" />
+                    </styleClass>
+                    <padding>
+                        <Insets top="15" right="10" bottom="15" left="15"/>
+                    </padding>
+                    
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="📝 Log Entries">
+                            <styleClass>
+                                <String fx:value="panel-title" />
+                            </styleClass>
+                        </Label>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button text="➕" onAction="#onAddLogButtonPressed">
+                            <styleClass>
+                                <String fx:value="add-button-round" />
+                            </styleClass>
+                        </Button>
+                        <Button text="➖" onAction="#onDeleteLogButtonPressed">
+                            <styleClass>
+                                <String fx:value="delete-button-round" />
+                            </styleClass>
+                        </Button>
+                    </HBox>
+                    
+                    <ListView fx:id="logListView" VBox.vgrow="ALWAYS">
+                        <styleClass>
+                            <String fx:value="modern-list-view" />
+                        </styleClass>
+                    </ListView>
                 </VBox>
 
-                <VBox spacing="10">
+                <!-- LOG DETAILS SIDE -->
+                <VBox spacing="15">
+                    <styleClass>
+                        <String fx:value="log-details-panel" />
+                    </styleClass>
                     <padding>
-                        <Insets top="5" right="5" bottom="5" left="5"/>
+                        <Insets top="15" right="15" bottom="15" left="10"/>
                     </padding>
 
-                    <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Log Details"/>
+                    <Label text="📋 Log Details">
+                        <styleClass>
+                            <String fx:value="panel-title" />
+                        </styleClass>
+                    </Label>
 
-                    <HBox spacing="5">
-                        <Label minWidth="100" text="Date:" />
-                        <Label fx:id="logDateLabel" />
+                    <!-- DATE & TIME INFO -->
+                    <HBox spacing="20">
+                        <VBox spacing="5">
+                            <styleClass>
+                                <String fx:value="info-group" />
+                            </styleClass>
+                            <Label text="📅 Date:">
+                                <styleClass>
+                                    <String fx:value="info-label" />
+                                </styleClass>
+                            </Label>
+                            <Label fx:id="logDateLabel" text="Not selected">
+                                <styleClass>
+                                    <String fx:value="info-value" />
+                                </styleClass>
+                            </Label>
+                        </VBox>
+                        
+                        <VBox spacing="5">
+                            <styleClass>
+                                <String fx:value="info-group" />
+                            </styleClass>
+                            <Label text="🕒 Time:">
+                                <styleClass>
+                                    <String fx:value="info-label" />
+                                </styleClass>
+                            </Label>
+                            <Label fx:id="logTimeLabel" text="Not selected">
+                                <styleClass>
+                                    <String fx:value="info-value" />
+                                </styleClass>
+                            </Label>
+                        </VBox>
                     </HBox>
 
-                    <HBox spacing="5">
-                        <Label minWidth="100" text="Time:" />
-                        <Label fx:id="logTimeLabel" />
-                    </HBox>
+                    <!-- COMMENT SECTION -->
+                    <VBox spacing="8">
+                        <Label text="💭 Comment:">
+                            <styleClass>
+                                <String fx:value="field-label" />
+                            </styleClass>
+                        </Label>
+                        <TextArea fx:id="logCommentArea" prefRowCount="4" wrapText="true" 
+                                VBox.vgrow="ALWAYS" promptText="Describe your experience...">
+                            <styleClass>
+                                <String fx:value="modern-text-area" />
+                            </styleClass>
+                        </TextArea>
+                    </VBox>
 
-                    <Label text="Comment:" />
-                    <TextArea fx:id="logCommentArea" prefHeight="100" wrapText="true" VBox.vgrow="ALWAYS" />
-
-                    <GridPane hgap="10" vgap="5">
+                    <!-- LOG METRICS -->
+                    <GridPane hgap="15" vgap="12">
+                        <styleClass>
+                            <String fx:value="metrics-grid" />
+                        </styleClass>
                         <columnConstraints>
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="100" />
-                            <ColumnConstraints hgrow="SOMETIMES" />
+                            <ColumnConstraints hgrow="NEVER" minWidth="100" />
+                            <ColumnConstraints hgrow="ALWAYS" />
                         </columnConstraints>
 
-                        <Label text="Difficulty:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
-                        <TextField fx:id="logDifficultyField" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+                        <Label text="🎯 Difficulty:" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                            <styleClass>
+                                <String fx:value="field-label" />
+                            </styleClass>
+                        </Label>
+                        <TextField fx:id="logDifficultyField" promptText="1-5" 
+                                 GridPane.rowIndex="0" GridPane.columnIndex="1">
+                            <styleClass>
+                                <String fx:value="modern-text-field" />
+                            </styleClass>
+                        </TextField>
 
-                        <Label text="Total Distance:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
-                        <TextField fx:id="logTotalDistanceField" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                        <Label text="📏 Distance:" GridPane.rowIndex="1" GridPane.columnIndex="0">
+                            <styleClass>
+                                <String fx:value="field-label" />
+                            </styleClass>
+                        </Label>
+                        <TextField fx:id="logTotalDistanceField" promptText="km" 
+                                 GridPane.rowIndex="1" GridPane.columnIndex="1">
+                            <styleClass>
+                                <String fx:value="modern-text-field" />
+                            </styleClass>
+                        </TextField>
 
-                        <Label text="Total Time:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
-                        <TextField fx:id="logTotalTimeField" promptText="HH:MM:SS" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+                        <Label text="⏱️ Duration:" GridPane.rowIndex="2" GridPane.columnIndex="0">
+                            <styleClass>
+                                <String fx:value="field-label" />
+                            </styleClass>
+                        </Label>
+                        <TextField fx:id="logTotalTimeField" promptText="HH:MM:SS" 
+                                 GridPane.rowIndex="2" GridPane.columnIndex="1">
+                            <styleClass>
+                                <String fx:value="modern-text-field" />
+                            </styleClass>
+                        </TextField>
 
-                        <Label text="Rating:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
-                        <TextField fx:id="logRatingField" GridPane.rowIndex="3" GridPane.columnIndex="1" />
+                        <Label text="⭐ Rating:" GridPane.rowIndex="3" GridPane.columnIndex="0">
+                            <styleClass>
+                                <String fx:value="field-label" />
+                            </styleClass>
+                        </Label>
+                        <TextField fx:id="logRatingField" promptText="1-5 stars" 
+                                 GridPane.rowIndex="3" GridPane.columnIndex="1">
+                            <styleClass>
+                                <String fx:value="modern-text-field" />
+                            </styleClass>
+                        </TextField>
                     </GridPane>
 
+                    <!-- SAVE BUTTON -->
                     <HBox spacing="10" alignment="CENTER_RIGHT">
-                        <Button text="Save Changes" onAction="#onUpdateLogButtonPressed" />
+                        <styleClass>
+                            <String fx:value="log-action-bar" />
+                        </styleClass>
+                        <Button text="💾 Save Log Changes" onAction="#onUpdateLogButtonPressed">
+                            <styleClass>
+                                <String fx:value="primary-button" />
+                            </styleClass>
+                        </Button>
                     </HBox>
                 </VBox>
             </SplitPane>

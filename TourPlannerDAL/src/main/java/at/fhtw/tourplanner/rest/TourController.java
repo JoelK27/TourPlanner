@@ -3,19 +3,19 @@ package at.fhtw.tourplanner.rest;
 import at.fhtw.tourplanner.model.Log;
 import at.fhtw.tourplanner.model.Tour;
 import at.fhtw.tourplanner.repo.TourRepository;
-import at.fhtw.tourplanner.service.ImageService;
 import at.fhtw.tourplanner.service.OpenRouteService;
 import at.fhtw.tourplanner.service.ReportService;
 import at.fhtw.tourplanner.service.StatsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/tours")
@@ -24,9 +24,9 @@ public class TourController {
 
     private final TourRepository tourRepository;
     private final ReportService reportService;
-    private final ImageService imageService;
     private final StatsService statsService;
     private final OpenRouteService openRouteService;
+    private static final Logger logger = LogManager.getLogger(TourController.class);
 
     @GetMapping
     public List<Tour> getAllTours() {
@@ -34,24 +34,79 @@ public class TourController {
     }
 
     @GetMapping("/{id}")
-    public Optional<Tour> getTourById(@PathVariable int id) {
-        return tourRepository.findById(id);
+    public Tour getTourById(@PathVariable int id) {
+        return tourRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tour not found"));
     }
 
     @PostMapping
     public Tour createTour(@RequestBody Tour tour) {
-        return tourRepository.save(tour);
+        logger.info("Creating new tour: {}", tour.getName());
+
+        // Tour zuerst speichern
+        Tour savedTour = tourRepository.save(tour);
+        logger.debug("Tour saved with ID: {}", savedTour.getId());
+
+        // Routingdaten berechnen und setzen
+        try {
+            OpenRouteService.RouteInfo routeInfo = openRouteService.getRouteInfo(
+                    savedTour.getFromLocation(),
+                    savedTour.getToLocation(),
+                    savedTour.getTransportType()
+            );
+            savedTour.setEncodedRouteGeometry(routeInfo.routeGeometry);
+            savedTour.setStartCoords(Arrays.toString(routeInfo.startCoords));
+            savedTour.setEndCoords(Arrays.toString(routeInfo.endCoords));
+            savedTour.setTourDistance(routeInfo.distance);
+            savedTour.setEstimatedTime(routeInfo.duration);
+            savedTour = tourRepository.save(savedTour);
+            logger.info("Tour created successfully with routing data: {}", savedTour.getId());
+        } catch (Exception e) {
+            logger.error("Route calculation failed for new tour {}: {}", savedTour.getId(), e.getMessage(), e);
+        }
+
+        return savedTour;
     }
 
     @PutMapping("/{id}")
     public Tour updateTour(@PathVariable int id, @RequestBody Tour tour) {
+        logger.info("Updating tour with ID: {}", id);
+
         tour.setId(id);
-        return tourRepository.save(tour);
+        Tour savedTour = tourRepository.save(tour);
+
+        // Routingdaten neu berechnen
+        try {
+            OpenRouteService.RouteInfo routeInfo = openRouteService.getRouteInfo(
+                    savedTour.getFromLocation(),
+                    savedTour.getToLocation(),
+                    savedTour.getTransportType()
+            );
+            savedTour.setEncodedRouteGeometry(routeInfo.routeGeometry);
+            savedTour.setStartCoords(Arrays.toString(routeInfo.startCoords));
+            savedTour.setEndCoords(Arrays.toString(routeInfo.endCoords));
+            savedTour.setTourDistance(routeInfo.distance);
+            savedTour.setEstimatedTime(routeInfo.duration);
+            savedTour = tourRepository.save(savedTour);
+            logger.info("Tour updated successfully with routing data: {}", savedTour.getId());
+        } catch (Exception e) {
+            logger.error("Route calculation failed for updated tour {}: {}", savedTour.getId(), e.getMessage(), e);
+        }
+
+        return savedTour;
     }
 
     @DeleteMapping("/{id}")
     public void deleteTour(@PathVariable int id) {
+        logger.info("Deleting tour with ID: {}", id);
+
+        if (!tourRepository.existsById(id)) {
+            logger.warn("Attempt to delete non-existent tour with ID: {}", id);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Tour not found");
+        }
+
         tourRepository.deleteById(id);
+        logger.info("Tour with ID {} deleted successfully", id);
     }
 
     @GetMapping("/search")
@@ -113,21 +168,6 @@ public class TourController {
                 .body(pdf);
     }
 
-    @PostMapping("/{id}/image")
-    public ResponseEntity<Void> uploadTourImage(@PathVariable int id, @RequestBody byte[] imageBytes) {
-        imageService.saveTourImage(id, imageBytes);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/{id}/image")
-    public ResponseEntity<Resource> getTourImage(@PathVariable int id) {
-        Resource image = imageService.loadTourImage(id);
-        if (image == null || !image.exists()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok().body(image);
-    }
-
     @GetMapping("/{id}/stats")
     public Map<String, Object> getTourStats(@PathVariable int id) {
         return statsService.getTourStats(id);
@@ -177,5 +217,44 @@ public class TourController {
         public void setToLocation(String toLocation) { this.toLocation = toLocation; }
         public String getTransportType() { return transportType; }
         public void setTransportType(String transportType) { this.transportType = transportType; }
+    }
+
+    @PutMapping("/{id}/notes")
+    public ResponseEntity<Map<String, String>> updateTourNotes(@PathVariable int id, @RequestBody Map<String, String> notesData) {
+        logger.info("Updating notes for tour ID: {}", id);
+        
+        Optional<Tour> tourOpt = tourRepository.findById(id);
+        if (tourOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Tour tour = tourOpt.get();
+        String notes = notesData.get("notes");
+        tour.setQuickNotes(notes);
+        tourRepository.save(tour);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("notes", notes);
+        response.put("message", "Notes updated successfully");
+        
+        logger.info("Notes updated for tour: {}", tour.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/notes")
+    public ResponseEntity<Map<String, String>> getTourNotes(@PathVariable int id) {
+        logger.info("Fetching notes for tour ID: {}", id);
+        
+        Optional<Tour> tourOpt = tourRepository.findById(id);
+        if (tourOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Tour tour = tourOpt.get();
+        Map<String, String> response = new HashMap<>();
+        response.put("notes", tour.getQuickNotes() != null ? tour.getQuickNotes() : "");
+        response.put("tourName", tour.getName());
+        
+        return ResponseEntity.ok(response);
     }
 }

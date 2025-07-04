@@ -1,4 +1,4 @@
-package at.fhtw.tourplanner.bl;
+package at.fhtw.tourplanner;
 
 import at.fhtw.tourplanner.TourPlannerApplication;
 import javafx.scene.control.ListView;

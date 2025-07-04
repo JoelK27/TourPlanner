@@ -65,6 +65,7 @@ public class TourStore {
     public Tour createNewTour() {
         Tour newTour = new Tour(nextTourId++, "New Tour", "",
                 "", "", "Car", 0.0, 0.0);
+        newTour.setQuickNotes(""); // Neues Feld initialisieren
         tours.add(newTour);
         return newTour;
     }
@@ -158,6 +159,13 @@ public class TourStore {
         List<Log> logs = tourLogs.get(log.getTourId());
         if (logs != null) {
             logs.remove(log);
+        }
+    }
+
+    public void updateTourNotes(int tourId, String notes) {
+        Optional<Tour> tourOpt = getTourById(tourId);
+        if (tourOpt.isPresent()) {
+            tourOpt.get().setQuickNotes(notes);
         }
     }
 }

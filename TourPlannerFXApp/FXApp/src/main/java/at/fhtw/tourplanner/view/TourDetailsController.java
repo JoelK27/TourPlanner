@@ -4,13 +4,11 @@ import at.fhtw.tourplanner.apiclient.TourApiService;
 import at.fhtw.tourplanner.model.Log;
 import at.fhtw.tourplanner.model.Tour;
 import at.fhtw.tourplanner.viewmodel.TourDetailsViewModel;
-import at.fhtw.tourplanner.viewmodel.TourOverviewViewModel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.util.converter.NumberStringConverter;
@@ -18,11 +16,11 @@ import javafx.util.converter.NumberStringConverter;
 import java.io.File;
 import java.sql.Date;
 import java.sql.Time;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TourDetailsController {
     // Tour Details Tab
@@ -34,8 +32,8 @@ public class TourDetailsController {
     @FXML public ChoiceBox<String> transportTypeChoice;
     @FXML public TextField distanceField;
     @FXML public TextField estimatedTimeField;
-    @FXML public ImageView tourImageView;
-    @FXML public Label imageStatusLabel;
+    @FXML public TextArea quickNotesArea;
+    @FXML public Button saveNotesButton;
 
     // Tour Logs Tab - neue UI-Komponenten
     @FXML public ListView<Log> logListView;
@@ -52,6 +50,7 @@ public class TourDetailsController {
     private final TourDetailsViewModel tourDetailsViewModel;
     private final ObservableList<Log> observableLogs = FXCollections.observableArrayList();
     private Tour currentTour;
+    private static final Logger logger = LogManager.getLogger(TourDetailsController.class);
 
     public TourDetailsController(TourDetailsViewModel tourDetailsViewModel) {
         this.tourDetailsViewModel = tourDetailsViewModel;
@@ -91,41 +90,45 @@ public class TourDetailsController {
                 new NumberStringConverter()
         );
 
+        // Quick Notes TextArea Setup
+        if (quickNotesArea != null) {
+            quickNotesArea.setPromptText("Add quick notes about this tour...");
+            quickNotesArea.setWrapText(true);
+            quickNotesArea.setPrefRowCount(3);
+        }
+
         Platform.runLater(() -> {
             if (mapWebView != null) {
-                // Detailliertes Error-Handling für WebView
                 mapWebView.getEngine().setOnError(event -> {
-                    System.err.println("WebView Error: " + event.getMessage());
-                    System.err.println("Error source: " + event.getSource());
+                    logger.error("WebView Error: {}", event.getMessage());
+                    logger.error("Error source: {}", event.getSource());
                 });
 
-                // JavaScript Console Output anzeigen
                 mapWebView.getEngine().setOnAlert(event -> {
-                    System.out.println("JavaScript Alert: " + event.getData());
+                    logger.info("JavaScript Alert: {}", event.getData());
                 });
 
-                // Load Worker Status überwachen
                 mapWebView.getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
-                    System.out.println("WebView Load State: " + oldValue + " -> " + newValue);
+                    logger.debug("WebView Load State: {} -> {}", oldValue, newValue);
 
                     switch (newValue) {
                         case SUCCEEDED:
-                            System.out.println("WebView content loaded successfully!");
+                            logger.debug("WebView content loaded successfully!");
                             break;
                         case FAILED:
-                            System.err.println("WebView failed to load content");
+                            logger.error("WebView failed to load content");
                             Throwable exception = mapWebView.getEngine().getLoadWorker().getException();
                             if (exception != null) {
-                                System.err.println("Exception: " + exception.getMessage());
+                                logger.error("Exception: {}", exception.getMessage(), exception);
                             }
                             break;
                         case CANCELLED:
-                            System.err.println("WebView loading was cancelled");
+                            logger.warn("WebView loading was cancelled");
                             break;
                     }
                 });
             } else {
-                System.err.println("mapWebView is null!");
+                logger.error("mapWebView is null!");
             }
         });
 
@@ -193,7 +196,7 @@ public class TourDetailsController {
 
         if (tour != null) {
             updateTourTitle();
-            loadAndDisplayTourImage();
+            loadTourNotes(); // Neue Methode
 
             // Automatisch Route berechnen und Karte anzeigen, falls From/To vorhanden
             if (tour.getFrom() != null && tour.getTo() != null &&
@@ -207,7 +210,7 @@ public class TourDetailsController {
                                         tour.getTransportType());
                         updateMap(routeInfo);
                     } catch (Exception e) {
-                        System.err.println("Error loading map for tour: " + e.getMessage());
+                        logger.error("Error loading map for tour: {}", e.getMessage(), e);
                         // Zeige eine einfache Karte ohne Route
                         showSimpleMap();
                     }
@@ -218,6 +221,20 @@ public class TourDetailsController {
             }
         } else {
             clearFields();
+        }
+    }
+
+    private void loadTourNotes() {
+        if (currentTour != null && quickNotesArea != null) {
+            try {
+                Map<String, String> notesResponse = TourApiService.getInstance().getTourNotes(currentTour.getId());
+                String notes = notesResponse.get("notes");
+                quickNotesArea.setText(notes != null ? notes : "");
+                currentTour.setQuickNotes(notes);
+            } catch (Exception e) {
+                logger.error("Error loading notes: {}", e.getMessage(), e);
+                quickNotesArea.setText("");
+            }
         }
     }
 
@@ -251,6 +268,9 @@ public class TourDetailsController {
     public void clearFields() {
         tourDetailsViewModel.setTourModel(null);
         observableLogs.clear();
+        if (quickNotesArea != null) {
+            quickNotesArea.clear();
+        }
     }
 
     @FXML
@@ -270,6 +290,7 @@ public class TourDetailsController {
             // Setze den Fokus auf das Kommentarfeld für sofortige Bearbeitung
             logCommentArea.requestFocus();
         } catch (Exception e) {
+            logger.error("Error creating log: {}", e.getMessage(), e);
             showAlert("Error", "Error creating Log: " + e.getMessage());
         }
     }
@@ -278,6 +299,7 @@ public class TourDetailsController {
     void onDeleteLogButtonPressed() {
         Log selectedLog = logListView.getSelectionModel().getSelectedItem();
         if (selectedLog != null) {
+            logger.info("Deleting log with ID: {}", selectedLog.getId());
             tourDetailsViewModel.deleteSelectedLog();
 
             // Wenn nach dem Löschen noch Logs vorhanden sind, wähle das erste aus
@@ -285,6 +307,7 @@ public class TourDetailsController {
                 logListView.getSelectionModel().select(0);
             }
         } else {
+            logger.warn("Attempt to delete log without selection");
             showAlert("No log selected", "Please select a log-entry from the list.");
         }
     }
@@ -301,68 +324,31 @@ public class TourDetailsController {
                     Time totalTime = Time.valueOf(logTotalTimeField.getText());
                     int rating = Integer.parseInt(logRatingField.getText());
 
+                    logger.info("Updating log with ID: {} - Comment: {}, Difficulty: {}, Distance: {}, Time: {}, Rating: {}", 
+                              selectedLog.getId(), comment, difficulty, totalDistance, totalTime, rating);
+                    
                     tourDetailsViewModel.updateSelectedLog(selectedLog, comment, difficulty, totalDistance, totalTime, rating);
                 } catch (NumberFormatException e) {
+                    logger.error("Invalid number format in log fields: {}", e.getMessage());
                     showAlert("Invalid Entry", "Bitte geben Sie gültige Werte für die Log-Attribute ein.");
                 } catch (IllegalArgumentException e) {
+                    logger.error("Invalid time format in log fields: {}", e.getMessage());
                     showAlert("Invalid Timeformat", "Please provide a time in following format: HH:MM:SS.");
                 }
             } else {
+                logger.warn("Log field validation failed");
                 showAlert("Invalidation Error", "Please fill in all required fields with valid values.");
             }
         } else {
+            logger.warn("Attempt to update log without selection");
             showAlert("No log selected", "Please select a log-entry from the list.");
         }
     }
 
     @FXML
-    void onUploadImageClicked() {
-        if (currentTour == null) {
-            showAlert("No Tour Selected", "Please select a tour-entry from the list.");
-            return;
-        }
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png"));
-        File file = fileChooser.showOpenDialog(null);
-        if (file != null) {
-            TourApiService.getInstance().uploadTourImage(currentTour.getId(), file);
-            showAlert("Uploaded Image", "The image has been uploaded successfully.");
-            loadAndDisplayTourImage();
-        }
-    }
-
-    @FXML
-    void onDownloadImageClicked() {
-        if (currentTour == null) {
-            showAlert("No Tour Selected", "Please select a tour-entry from the list.");
-            return;
-        }
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.jpg"));
-        File file = fileChooser.showSaveDialog(null);
-        if (file != null) {
-            byte[] imageBytes = TourApiService.getInstance().downloadTourImage(currentTour.getId());
-            if (imageBytes != null) {
-                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
-                    fos.write(imageBytes);
-                    showAlert("Image saved", "The image has been saved successfully.");
-                } catch (Exception e) {
-                    showAlert("Error", "Error saving image: " + e.getMessage());
-                }
-            } else {
-                showAlert("Error", "No image available or error while saving.");
-            }
-        }
-    }
-
-    @FXML
-    void onRefreshImageClicked() {
-        loadAndDisplayTourImage();
-    }
-
-    @FXML
     void onSaveTourReportClicked() {
         if (currentTour == null) {
+            logger.warn("Attempt to save tour report without tour selection");
             showAlert("No Tour Selected", "Please select a tour-entry from the list.");
             return;
         }
@@ -370,6 +356,7 @@ public class TourDetailsController {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
         File file = fileChooser.showSaveDialog(null);
         if (file != null) {
+            logger.info("Saving tour report for tour ID {} to file: {}", currentTour.getId(), file.getAbsolutePath());
             TourApiService.getInstance().saveTourReport(currentTour.getId(), file);
             showAlert("Saved Report", "The Tour-Report has been saved successfully.");
         }
@@ -381,6 +368,7 @@ public class TourDetailsController {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
         File file = fileChooser.showSaveDialog(null);
         if (file != null) {
+            logger.info("Saving summary report to file: {}", file.getAbsolutePath());
             TourApiService.getInstance().saveSummaryReport(file);
             showAlert("Saved Report", "The Summary-Report has been saved successfully.");
         }
@@ -389,9 +377,11 @@ public class TourDetailsController {
     @FXML
     void onShowTourStatsClicked() {
         if (currentTour == null) {
+            logger.warn("Attempt to show tour stats without tour selection");
             showAlert("No Tour Selected", "Please select a tour-entry from the list.");
             return;
         }
+        logger.info("Loading tour statistics for tour ID: {}", currentTour.getId());
         var stats = TourApiService.getInstance().getTourStats(currentTour.getId());
         showAlert("Tour-Statistics",
                 "Popularity: " + stats.get("popularity") +
@@ -402,71 +392,58 @@ public class TourDetailsController {
     }
 
     @FXML
-    void onShowWeatherClicked() {
-        if (currentTour == null) {
-            showAlert("No Tour Selected", "Please select a tour-entry from the list.");
-            return;
-        }
-        var weather = TourApiService.getInstance().getTourWeather(currentTour.getId());
-        showAlert("Weather Information",
-                "Start: " + weather.get("fromWeather") +
-                "\nGoal: " + weather.get("toWeather"));
-    }
-
-    @FXML
     void onCalculateRoutePressed() {
         String fromLocation = fromField.getText().trim();
         String toLocation = toField.getText().trim();
         String transportType = transportTypeChoice.getValue();
 
-        System.out.println("=== Calculate Route Button Pressed ===");
-        System.out.println("From: '" + fromLocation + "'");
-        System.out.println("To: '" + toLocation + "'");
-        System.out.println("Transport: '" + transportType + "'");
+        logger.info("=== Calculate Route Button Pressed ===");
+        logger.info("From: '{}'", fromLocation);
+        logger.info("To: '{}'", toLocation);
+        logger.info("Transport: '{}'", transportType);
 
         if (fromLocation.isEmpty() || toLocation.isEmpty()) {
+            logger.warn("Missing from or to location for route calculation");
             showAlert("Missing Information", "Please enter both from and to locations.");
             return;
         }
 
         if (transportType == null) {
             transportType = "Car"; // Default fallback
+            logger.debug("Using default transport type: {}", transportType);
         }
 
         try {
-            System.out.println("Calling TourApiService.calculateRoute...");
+            logger.debug("Calling TourApiService.calculateRoute...");
             Map<String, Object> routeInfo = TourApiService.getInstance()
                     .calculateRoute(fromLocation, toLocation, transportType);
 
-            System.out.println("Route calculation completed. Result: " + routeInfo);
+            logger.debug("Route calculation completed. Result size: {}", routeInfo.size());
 
             if (!routeInfo.isEmpty()) {
                 // Update distance and time fields
                 double distance = (Double) routeInfo.get("distance");
                 double estimatedTime = (Double) routeInfo.get("estimatedTime");
 
-                System.out.println("Distance: " + distance + " km");
-                System.out.println("Estimated Time: " + estimatedTime + " hours");
+                logger.info("Route calculated successfully - Distance: {} km, Estimated Time: {} hours", distance, estimatedTime);
 
                 distanceField.setText(String.format("%.2f", distance));
                 estimatedTimeField.setText(String.format("%.2f", estimatedTime));
 
                 // Update map with route
-                System.out.println("Calling updateMap...");
+                logger.debug("Calling updateMap...");
                 updateMap(routeInfo);
 
                 showAlert("Route Calculated",
                         String.format("Distance: %.2f km\nEstimated Time: %.2f hours",
                                 distance, estimatedTime));
             } else {
-                System.err.println("ERROR: Route info is empty!");
+                logger.error("Route info is empty!");
                 showAlert("Error", "No route data received from server");
             }
         } catch (Exception e) {
-            System.err.println("=== EXCEPTION in onCalculateRoutePressed ===");
-            System.err.println("Error calculating route: " + e.getMessage());
-            e.printStackTrace();
-            System.err.println("==========================================");
+            logger.error("=== EXCEPTION in onCalculateRoutePressed ===");
+            logger.error("Error calculating route: {}", e.getMessage(), e);
             showAlert("Error", "Failed to calculate route: " + e.getMessage());
 
             // Fallback: Zeige Test-Karte
@@ -476,19 +453,17 @@ public class TourDetailsController {
 
     private void updateMap(Map<String, Object> routeInfo) {
         try {
-            System.out.println("=== UpdateMap Debug ===");
-            System.out.println("RouteInfo keys: " + routeInfo.keySet());
-            System.out.println("RouteInfo: " + routeInfo);
+            logger.debug("=== UpdateMap Debug ===");
+            logger.debug("RouteInfo keys: {}", routeInfo.keySet());
+            logger.debug("RouteInfo: {}", routeInfo);
 
             String routeGeometry = (String) routeInfo.get("routeGeometry");
-            System.out.println("Route Geometry type: " + (routeGeometry != null ? routeGeometry.getClass().getName() : "null"));
-            System.out.println("Route Geometry: " + routeGeometry);
+            logger.debug("Route Geometry type: {}", (routeGeometry != null ? routeGeometry.getClass().getName() : "null"));
 
-            // Prüfe ob es valides JSON ist
             if (routeGeometry != null && !routeGeometry.equals("{}") && !routeGeometry.equals("null")) {
-                System.out.println("✓ Valid route geometry detected");
+                logger.debug("✓ Valid route geometry detected");
             } else {
-                System.out.println("⚠ No valid route geometry - showing simple map");
+                logger.warn("⚠ No valid route geometry - showing test map");
                 showTestMap();
                 return;
             }
@@ -497,11 +472,13 @@ public class TourDetailsController {
             Object startCoordsObj = routeInfo.get("startCoords");
             Object endCoordsObj = routeInfo.get("endCoords");
 
-            System.out.println("Start Coords Object: " + startCoordsObj + " (Type: " + (startCoordsObj != null ? startCoordsObj.getClass().getName() : "null") + ")");
-            System.out.println("End Coords Object: " + endCoordsObj + " (Type: " + (endCoordsObj != null ? endCoordsObj.getClass().getName() : "null") + ")");
+            logger.debug("Start Coords Object: {} (Type: {})", startCoordsObj, 
+                        (startCoordsObj != null ? startCoordsObj.getClass().getName() : "null"));
+            logger.debug("End Coords Object: {} (Type: {})", endCoordsObj, 
+                        (endCoordsObj != null ? endCoordsObj.getClass().getName() : "null"));
 
             if (startCoordsObj == null || endCoordsObj == null) {
-                System.err.println("ERROR: Coordinates are null!");
+                logger.error("Coordinates are null!");
                 showTestMap();
                 return;
             }
@@ -515,7 +492,7 @@ public class TourDetailsController {
             } else if (startCoordsObj instanceof double[]) {
                 startCoords = (double[]) startCoordsObj;
             } else {
-                System.err.println("ERROR: Unexpected startCoords type: " + startCoordsObj.getClass());
+                logger.error("Unexpected startCoords type: {}", startCoordsObj.getClass());
                 showTestMap();
                 return;
             }
@@ -526,28 +503,25 @@ public class TourDetailsController {
             } else if (endCoordsObj instanceof double[]) {
                 endCoords = (double[]) endCoordsObj;
             } else {
-                System.err.println("ERROR: Unexpected endCoords type: " + endCoordsObj.getClass());
+                logger.error("Unexpected endCoords type: {}", endCoordsObj.getClass());
                 showTestMap();
                 return;
             }
 
-            System.out.println("Start Coords: [" + startCoords[0] + ", " + startCoords[1] + "]");
-            System.out.println("End Coords: [" + endCoords[0] + ", " + endCoords[1] + "]");
+            logger.debug("Start Coords: [{}, {}]", startCoords[0], startCoords[1]);
+            logger.debug("End Coords: [{}, {}]", endCoords[0], endCoords[1]);
 
             String mapHtml = generateMapHtml(routeGeometry, startCoords, endCoords);
-            System.out.println("Generated HTML length: " + mapHtml.length());
+            logger.debug("Generated HTML length: {}", mapHtml.length());
 
             Platform.runLater(() -> {
-                System.out.println("Loading map HTML into WebView...");
+                logger.debug("Loading map HTML into WebView...");
                 mapWebView.getEngine().loadContent(mapHtml);
             });
 
-            System.out.println("========================");
+            logger.debug("Map update completed successfully");
         } catch (Exception e) {
-            System.err.println("=== ERROR in updateMap ===");
-            System.err.println("Exception: " + e.getMessage());
-            e.printStackTrace();
-            System.err.println("========================");
+            logger.error("Error updating map: {}", e.getMessage(), e);
             showTestMap();
         }
     }
@@ -618,7 +592,7 @@ public class TourDetailsController {
         """;
 
         Platform.runLater(() -> {
-            System.out.println("Loading test map...");
+            logger.debug("Loading test map...");
             mapWebView.getEngine().loadContent(testHtml);
         });
     }
@@ -694,47 +668,103 @@ public class TourDetailsController {
         } else {
             tourTitleLabel.setText("New Tour");
         }
-    }
 
-    // Methode zum Laden und Anzeigen des Tour-Bildes:
-    private void loadAndDisplayTourImage() {
-        if (currentTour == null) {
-            tourImageView.setImage(null);
-            imageStatusLabel.setText("No image available");
-            return;
-        }
-        
-        try {
-            byte[] imageBytes = TourApiService.getInstance().downloadTourImage(currentTour.getId());
-            if (imageBytes != null && imageBytes.length > 0) {
-                Image image = new Image(new ByteArrayInputStream(imageBytes));
-                tourImageView.setImage(image);
-                imageStatusLabel.setText("Image loaded successfully");
-            } else {
-                tourImageView.setImage(null);
-                imageStatusLabel.setText("No image available");
+        if (currentTour != null && tourTitleLabel != null) {
+            String title = currentTour.getName();
+            
+            // Add note indicator if notes exist
+            if (currentTour.getQuickNotes() != null && !currentTour.getQuickNotes().trim().isEmpty()) {
+                title += " 📝";
             }
-        } catch (Exception e) {
-            tourImageView.setImage(null);
-            imageStatusLabel.setText("Error loading image");
-            System.err.println("Error loading image: " + e.getMessage());
+            
+            tourTitleLabel.setText(title);
         }
     }
 
     @FXML
     void onSaveTourDetailsClicked() {
         if (currentTour == null) {
+            logger.warn("Attempt to save tour details without tour selection");
             showAlert("No Tour Selected", "Please select a tour-entry from the list.");
             return;
         }
         try {
+            logger.info("Saving tour details for tour ID: {}", currentTour.getId());
             // Tour im ViewModel/Backend aktualisieren
             tourDetailsViewModel.updateTourModel();
             showAlert("Saved", "Tour details have been saved successfully.");
             updateTourTitle();
+            logger.info("Tour details saved successfully for tour ID: {}", currentTour.getId());
 
         } catch (NumberFormatException e) {
+            logger.error("Invalid number format in tour details: {}", e.getMessage());
             showAlert("Invalid Entry", "Please enter valid numbers for distance and estimated time.");
         }
+    }
+
+    @FXML
+    void onSaveNotesClicked() {
+        if (currentTour == null) {
+            showAlert("No Tour Selected", "Please select a tour from the list.");
+            return;
+        }
+        
+        String notes = quickNotesArea.getText();
+        logger.info("Saving notes for tour ID: {}", currentTour.getId());
+        
+        try {
+            Map<String, String> response = TourApiService.getInstance().updateTourNotes(currentTour.getId(), notes);
+            
+            if (response.containsKey("error")) {
+                showAlert("Error", "Failed to save notes: " + response.get("error"));
+                return;
+            }
+            
+            currentTour.setQuickNotes(notes);
+            showAlert("Success", "Notes saved successfully!");
+            
+            // Update tour title to show note indicator
+            updateTourTitle();
+            
+        } catch (Exception e) {
+            logger.error("Error saving notes: {}", e.getMessage(), e);
+            showAlert("Error", "Failed to save notes: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    void onShowAllNotesClicked() {
+        logger.info("Showing all tour notes");
+        
+        try {
+            List<Tour> allTours = TourApiService.getInstance().getAllTours();
+            showAllNotesDialog(allTours);
+            
+        } catch (Exception e) {
+            logger.error("Error loading all notes: {}", e.getMessage(), e);
+            showAlert("Error", "Failed to load notes: " + e.getMessage());
+        }
+    }
+
+    private void showAllNotesDialog(List<Tour> tours) {
+        StringBuilder allNotes = new StringBuilder();
+        allNotes.append("📝 **ALL TOUR NOTES**\n\n");
+        
+        int notesCount = 0;
+        for (Tour tour : tours) {
+            if (tour.getQuickNotes() != null && !tour.getQuickNotes().trim().isEmpty()) {
+                allNotes.append("🚗 **").append(tour.getName()).append("**\n");
+                allNotes.append(tour.getQuickNotes()).append("\n\n");
+                notesCount++;
+            }
+        }
+        
+        if (notesCount == 0) {
+            allNotes.append("No notes found. Start adding some quick notes to your tours!");
+        } else {
+            allNotes.insert(0, "Found " + notesCount + " tours with notes\n\n");
+        }
+        
+        showAlert("📝 All Tour Notes", allNotes.toString());
     }
 }

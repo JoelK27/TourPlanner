@@ -10,7 +10,10 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.stereotype.Service;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -20,8 +23,12 @@ import java.util.List;
 public class ReportService {
     private final TourRepository tourRepository;
     private final LogRepository logRepository;
+    private final ImageService imageService;
+    private static final Logger logger = LogManager.getLogger(ReportService.class);
+
 
     public byte[] generateTourReport(int tourId) {
+        logger.info("Starting tour report generation for tour ID: {}", tourId);
         Tour tour = tourRepository.findById(tourId).orElseThrow();
         List<Log> logs = logRepository.findByTour(tour);
 
@@ -44,31 +51,87 @@ public class ReportService {
             content.setFont(PDType1Font.HELVETICA, 12);
 
             // Tour-Details
-            content.beginText();
-            content.newLineAtOffset(50, y);
-            content.showText("Description: " + tour.getTourDescription());
-            content.endText();
+            float lineHeight = 14f;
+            // Beschreibung mehrzeilig ausgeben
+            String[] descLines = tour.getTourDescription() != null ? tour.getTourDescription().split("\\r?\\n") : new String[]{""};
+            for (String line : descLines) {
+                content.beginText();
+                content.newLineAtOffset(50, y);
+                content.showText("Description: ".equals(line) ? line : line);
+                content.endText();
+                y -= lineHeight;
+            }
 
-            y -= 20;
+            // From/To
             content.beginText();
             content.newLineAtOffset(50, y);
             content.showText("From: " + tour.getFromLocation() + "   To: " + tour.getToLocation());
             content.endText();
+            y -= lineHeight;
 
-            y -= 20;
+            // Transport/Distanz/Zeit
             content.beginText();
             content.newLineAtOffset(50, y);
             content.showText("Transport: " + tour.getTransportType() + "   Distance: " + tour.getTourDistance() + " km   Time: " + tour.getEstimatedTime() + " h");
             content.endText();
+            y -= lineHeight;
 
-            y -= 30;
+            // === MAP IMAGE EINBINDEN ===
+            y -= 20;
+            try {
+                String encodedRouteGeometry = tour.getEncodedRouteGeometry();
+                double[] startCoords = tour.getStartCoordsAsArray();
+                double[] endCoords = tour.getEndCoordsAsArray();
+
+                if (encodedRouteGeometry != null && startCoords != null && endCoords != null) {
+                    logger.debug("Generating map image for tour {}", tour.getId());
+
+                    byte[] imageBytes = imageService.fetchTourMapImage(encodedRouteGeometry, startCoords, endCoords);
+
+                    if (imageBytes != null) {
+                        PDImageXObject pdImage = PDImageXObject.createFromByteArray(doc, imageBytes, "map.jpg");
+                        float imageWidth = 350;
+                        float imageHeight = 200;
+                        float x = 50;
+                        y -= imageHeight;
+                        content.drawImage(pdImage, x, y, imageWidth, imageHeight);
+                        y -= 20;
+                        logger.debug("Map image successfully added to PDF for tour {}", tour.getId());
+                    } else {
+                        logger.warn("Failed to load map image for tour {}", tour.getId());
+                        y -= 20;
+                        content.beginText();
+                        content.newLineAtOffset(50, y);
+                        content.showText("[Karte konnte nicht geladen werden]");
+                        content.endText();
+                        y -= 10;
+                    }
+                } else {
+                    logger.warn("No routing data available for map generation for tour {}", tour.getId());
+                    y -= 20;
+                    content.beginText();
+                    content.newLineAtOffset(50, y);
+                    content.showText("[Keine Routingdaten für Karte vorhanden]");
+                    content.endText();
+                    y -= 10;
+                }
+            } catch (Exception e) {
+                logger.error("Error inserting map into PDF for tour {}: {}", tour.getId(), e.getMessage(), e);
+                y -= 20;
+                content.beginText();
+                content.newLineAtOffset(50, y);
+                content.showText("[Fehler beim Einfügen der Karte]");
+                content.endText();
+                y -= 10;
+            }
+
+            y -= 10;
             content.setFont(PDType1Font.HELVETICA_BOLD, 14);
             content.beginText();
             content.newLineAtOffset(50, y);
             content.showText("Tour Logs:");
             content.endText();
-
-            y -= 20;
+            y -= lineHeight;
             content.setFont(PDType1Font.HELVETICA, 11);
 
             for (Log log : logs) {
@@ -79,19 +142,29 @@ public class ReportService {
                     content = new PDPageContentStream(doc, page);
                     y = page.getMediaBox().getHeight() - 50;
                 }
-                content.beginText();
-                content.newLineAtOffset(50, y);
-                content.showText(String.format("Date: %s | Comment: %s | Difficulty: %d | Distance: %.2f km | Time: %s | Rating: %d",
-                        log.getDate(), log.getComment(), log.getDifficulty(), log.getTotalDistance(),
-                        log.getTotalTime(), log.getRating()));
-                content.endText();
-                y -= 18;
+                // Kommentar mehrzeilig ausgeben
+                String[] commentLines = log.getComment() != null ? log.getComment().split("\\r?\\n") : new String[]{""};
+                for (int i = 0; i < commentLines.length; i++) {
+                    content.beginText();
+                    content.newLineAtOffset(50, y);
+                    if (i == 0) {
+                        content.showText(String.format("Date: %s | Comment: %s | Difficulty: %d | Distance: %.2f km | Time: %s | Rating: %d",
+                                log.getDate(), commentLines[i], log.getDifficulty(), log.getTotalDistance(),
+                                log.getTotalTime(), log.getRating()));
+                    } else {
+                        content.showText("                " + commentLines[i]);
+                    }
+                    content.endText();
+                    y -= lineHeight;
+                }
             }
 
             content.close();
             doc.save(out);
+            logger.info("Tour report generated successfully for tour ID: {}", tourId);
             return out.toByteArray();
         } catch (Exception e) {
+            logger.error("Error generating tour report for tour ID {}: {}", tourId, e.getMessage(), e);
             throw new RuntimeException("PDF generation failed", e);
         }
     }
