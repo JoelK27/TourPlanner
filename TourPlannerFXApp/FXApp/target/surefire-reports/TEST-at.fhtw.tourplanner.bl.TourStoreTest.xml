@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="at.fhtw.tourplanner.bl.TourStoreTest" time="0.012" tests="12" errors="0" skipped="0" failures="1">
+  <properties>
+    <property name="java.specification.version" value="23"/>
+    <property name="javafx.runtime.version" value="23.0.1+4"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.class.path" value="C:\Users\Elias\Desktop\UNI\SWEN-2\TourPlanner\TourPlanner\TourPlannerFXApp\FXApp\target\test-classes;C:\Users\Elias\.m2\repository\org\openjfx\javafx-controls\23.0.1\javafx-controls-23.0.1.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-graphics\23.0.1\javafx-graphics-23.0.1.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-base\23.0.1\javafx-base-23.0.1.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-fxml\23.0.1\javafx-fxml-23.0.1.jar;C:\Users\Elias\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.11.4\junit-jupiter-api-5.11.4.jar;C:\Users\Elias\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Elias\.m2\repository\org\junit\platform\junit-platform-commons\1.11.4\junit-platform-commons-1.11.4.jar;C:\Users\Elias\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Elias\.m2\repository\org\testfx\testfx-junit5\4.0.18\testfx-junit5-4.0.18.jar;C:\Users\Elias\.m2\repository\org\assertj\assertj-core\3.13.2\assertj-core-3.13.2.jar;C:\Users\Elias\.m2\repository\org\testfx\testfx-core\4.0.18\testfx-core-4.0.18.jar;C:\Users\Elias\.m2\repository\org\osgi\org.osgi.core\6.0.0\org.osgi.core-6.0.0.jar;C:\Users\Elias\.m2\repository\org\hamcrest\hamcrest\3.0\hamcrest-3.0.jar;C:\Users\Elias\.m2\repository\org\jacoco\org.jacoco.agent\0.8.12\org.jacoco.agent-0.8.12-runtime.jar;"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
+    <property name="java.vendor.url" value="https://java.oracle.com/"/>
+    <property name="user.timezone" value="Europe/Berlin"/>
+    <property name="user.country.format" value="AT"/>
+    <property name="javafx.version" value="23.0.1"/>
+    <property name="os.name" value="Windows 11"/>
+    <property name="java.vm.specification.version" value="23"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.boot.library.path" value="C:\Users\Elias\.jdks\openjdk-23.0.1\bin"/>
+    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter C:\Users\Elias\AppData\Local\Temp\surefire12853759203170481290 2025-07-01T13-29-17_321-jvmRun1 surefire-20250701132917496_1tmp surefire_0-20250701132917496_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="C:\Users\Elias\Desktop\UNI\SWEN-2\TourPlanner\TourPlanner\TourPlannerFXApp\FXApp\target\test-classes;C:\Users\Elias\.m2\repository\org\openjfx\javafx-controls\23.0.1\javafx-controls-23.0.1.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-graphics\23.0.1\javafx-graphics-23.0.1.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-base\23.0.1\javafx-base-23.0.1.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-fxml\23.0.1\javafx-fxml-23.0.1.jar;C:\Users\Elias\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.11.4\junit-jupiter-api-5.11.4.jar;C:\Users\Elias\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Elias\.m2\repository\org\junit\platform\junit-platform-commons\1.11.4\junit-platform-commons-1.11.4.jar;C:\Users\Elias\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Elias\.m2\repository\org\testfx\testfx-junit5\4.0.18\testfx-junit5-4.0.18.jar;C:\Users\Elias\.m2\repository\org\assertj\assertj-core\3.13.2\assertj-core-3.13.2.jar;C:\Users\Elias\.m2\repository\org\testfx\testfx-core\4.0.18\testfx-core-4.0.18.jar;C:\Users\Elias\.m2\repository\org\osgi\org.osgi.core\6.0.0\org.osgi.core-6.0.0.jar;C:\Users\Elias\.m2\repository\org\hamcrest\hamcrest\3.0\hamcrest-3.0.jar;C:\Users\Elias\.m2\repository\org\jacoco\org.jacoco.agent\0.8.12\org.jacoco.agent-0.8.12-runtime.jar;"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="C:\Users\Elias"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="jdk.module.path" value="C:\Users\Elias\Desktop\UNI\SWEN-2\TourPlanner\TourPlanner\TourPlannerFXApp\FXApp\target\classes;C:\Users\Elias\.m2\repository\org\projectlombok\lombok\1.18.34\lombok-1.18.34.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-controls\23.0.1\javafx-controls-23.0.1-win.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-graphics\23.0.1\javafx-graphics-23.0.1-win.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-base\23.0.1\javafx-base-23.0.1-win.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-fxml\23.0.1\javafx-fxml-23.0.1-win.jar"/>
+    <property name="java.version.date" value="2024-10-15"/>
+    <property name="java.home" value="C:\Users\Elias\.jdks\openjdk-23.0.1"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="C:\Users\Elias\Desktop\UNI\SWEN-2\TourPlanner\TourPlanner\TourPlannerFXApp\FXApp"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="surefire.real.class.path" value="C:\Users\Elias\.m2\repository\org\apache\maven\surefire\surefire-booter\3.5.2\surefire-booter-3.5.2.jar;C:\Users\Elias\.m2\repository\org\apache\maven\surefire\surefire-api\3.5.2\surefire-api-3.5.2.jar;C:\Users\Elias\.m2\repository\org\apache\maven\surefire\surefire-extensions-spi\3.5.2\surefire-extensions-spi-3.5.2.jar;C:\Users\Elias\.m2\repository\org\apache\maven\surefire\surefire-shared-utils\3.5.2\surefire-shared-utils-3.5.2.jar;C:\Users\Elias\.m2\repository\org\apache\maven\surefire\surefire-logger-api\3.5.2\surefire-logger-api-3.5.2.jar;C:\Users\Elias\Desktop\UNI\SWEN-2\TourPlanner\TourPlanner\TourPlannerFXApp\FXApp\target\test-classes;C:\Users\Elias\.m2\repository\org\openjfx\javafx-controls\23.0.1\javafx-controls-23.0.1.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-graphics\23.0.1\javafx-graphics-23.0.1.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-base\23.0.1\javafx-base-23.0.1.jar;C:\Users\Elias\.m2\repository\org\openjfx\javafx-fxml\23.0.1\javafx-fxml-23.0.1.jar;C:\Users\Elias\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.11.4\junit-jupiter-api-5.11.4.jar;C:\Users\Elias\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Elias\.m2\repository\org\junit\platform\junit-platform-commons\1.11.4\junit-platform-commons-1.11.4.jar;C:\Users\Elias\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Elias\.m2\repository\org\testfx\testfx-junit5\4.0.18\testfx-junit5-4.0.18.jar;C:\Users\Elias\.m2\repository\org\assertj\assertj-core\3.13.2\assertj-core-3.13.2.jar;C:\Users\Elias\.m2\repository\org\testfx\testfx-core\4.0.18\testfx-core-4.0.18.jar;C:\Users\Elias\.m2\repository\org\osgi\org.osgi.core\6.0.0\org.osgi.core-6.0.0.jar;C:\Users\Elias\.m2\repository\org\hamcrest\hamcrest\3.0\hamcrest-3.0.jar;C:\Users\Elias\.m2\repository\org\jacoco\org.jacoco.agent\0.8.12\org.jacoco.agent-0.8.12-runtime.jar;C:\Users\Elias\.m2\repository\org\apache\maven\surefire\surefire-junit-platform\3.5.2\surefire-junit-platform-3.5.2.jar;C:\Users\Elias\.m2\repository\org\apache\maven\surefire\common-java5\3.5.2\common-java5-3.5.2.jar;C:\Users\Elias\.m2\repository\org\junit\platform\junit-platform-engine\1.11.4\junit-platform-engine-1.11.4.jar;C:\Users\Elias\.m2\repository\org\junit\platform\junit-platform-launcher\1.11.4\junit-platform-launcher-1.11.4.jar;C:\Users\Elias\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.11.4\junit-jupiter-engine-5.11.4.jar"/>
+    <property name="user.script" value=""/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="23.0.1+11-39"/>
+    <property name="user.name" value="Elias"/>
+    <property name="stdout.encoding" value="Cp1252"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="localRepository" value="C:\Users\Elias\.m2\repository"/>
+    <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="java.io.tmpdir" value="C:\Users\Elias\AppData\Local\Temp\"/>
+    <property name="idea.version" value="2024.3.1.1"/>
+    <property name="java.version" value="23.0.1"/>
+    <property name="user.dir" value="C:\Users\Elias\Desktop\UNI\SWEN-2\TourPlanner\TourPlanner\TourPlannerFXApp\FXApp"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="native.encoding" value="Cp1252"/>
+    <property name="java.library.path" value="C:\Users\Elias\.jdks\openjdk-23.0.1\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files\glzr.io\GlazeWM\\cli;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files\WezTerm;C:\Program Files\dotnet\;C:\Program Files\PuTTY\;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\Git\cmd;C:\Program Files\nodejs\;C:\Program Files\glzr.io\Zebar\;C:\Users\Elias\scoop\shims;C:\Users\Elias\AppData\Local\Microsoft\WindowsApps;C:\Users\Elias\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Elias\.dotnet\tools;C:\Users\Elias\AppData\Local\spicetify;C:\Users\Elias\AppData\Local\Programs\oh-my-posh\bin;C:\Users\Elias\AppData\Local\Programs\Ollama;C:\Users\Elias\AppData\Local\Pandoc\;C:\Users\Elias\AppData\Roaming\npm;C:\msys64\ucrt64\bin;."/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="stderr.encoding" value="Cp1252"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.version" value="23.0.1+11-39"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="67.0"/>
+  </properties>
+  <testcase name="testCreateNewLog" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.0"/>
+  <testcase name="testUpdateLog" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.0"/>
+  <testcase name="testUpdateTour" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.0"/>
+  <testcase name="testFindMatchingTours" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.0">
+    <failure message="expected: &lt;false&gt; but was: &lt;true&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <false> but was: <true>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertFalse.failNotFalse(AssertFalse.java:63)
+	at org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:36)
+	at org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:31)
+	at org.junit.jupiter.api.Assertions.assertFalse(Assertions.java:231)
+	at tourplanner/at.fhtw.tourplanner.bl.TourStoreTest.testFindMatchingTours(TourStoreTest.java:39)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+]]></failure>
+  </testcase>
+  <testcase name="testGetLogsForTour" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.0"/>
+  <testcase name="testSearchToursWithMatchingLogs" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.006"/>
+  <testcase name="testDeleteLog" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.0"/>
+  <testcase name="testDeleteTour" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.0"/>
+  <testcase name="testCreateNewTour" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.0"/>
+  <testcase name="testAddMultipleLogsToTour" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.0"/>
+  <testcase name="testSearchToursWithNoMatch" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.0"/>
+  <testcase name="testUpdateTourWithEmptyFields" classname="at.fhtw.tourplanner.bl.TourStoreTest" time="0.0"/>
+</testsuite>

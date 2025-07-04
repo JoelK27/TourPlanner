@@ -36,7 +36,7 @@ public class LogController {
         logRepository.deleteById(id);
     }
 
-    @PutMapping("/logs/{id}")
+    @PutMapping("/api/logs/{id}")
     public Log updateLog(@PathVariable int id, @RequestBody Log log) {
         Log existingLog = logRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Log not found"));
         // Felder aktualisieren

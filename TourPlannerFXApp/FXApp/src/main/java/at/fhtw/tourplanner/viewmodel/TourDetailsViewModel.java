@@ -139,10 +139,14 @@ public class TourDetailsViewModel {
             newLog.setTotalDistance(totalDistance);
             newLog.setTotalTime(totalTime);
             newLog.setRating(rating);
-            apiService.addLog(tourModel.getId(), newLog);
-            logs.add(newLog);
-            selectedLog.set(newLog);
-            return newLog;
+            Log savedLog = apiService.addLog(tourModel.getId(), newLog);
+
+            if (savedLog != null) {
+                logs.add(savedLog);
+                selectedLog.set(savedLog);
+                return savedLog;
+            }
+            return null;
         }
         return null;
     }

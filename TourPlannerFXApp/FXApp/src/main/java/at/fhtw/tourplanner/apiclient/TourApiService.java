@@ -152,7 +152,7 @@ public class TourApiService {
     public void updateLog(Log log) {
         try {
             String jsonLog = objectMapper.writeValueAsString(log);
-            executePut(BASE_URL + "/logs/" + log.getId(), jsonLog);
+            executePut(BASE_URL + "/api/logs/" + log.getId(), jsonLog);
         } catch (Exception e) {
             System.err.println("Error updating log: " + e.getMessage());
         }
