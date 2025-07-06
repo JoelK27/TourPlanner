@@ -5,6 +5,7 @@ import at.fhtw.tourplanner.model.Log;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.ByteArrayEntity;
@@ -64,7 +65,8 @@ public class TourApiService {
     }
 
     public Tour createNewTour() {
-        Tour newTour = new Tour(0, "New Tour", "", "", "", "Car", 0.0, 0.0);
+        // Set all required fields with valid values
+        Tour newTour = new Tour(0, "New Tour", "Test Description", "Vienna", "Salzburg", "Car", 0.0, 0.0);
         return addTour(newTour);
     }
 
@@ -146,6 +148,11 @@ public class TourApiService {
         log.setTourId(tourId);
         log.setDate(new Date(System.currentTimeMillis()));
         log.setTime(new Time(System.currentTimeMillis()));
+        log.setComment("New Log");
+        log.setDifficulty(3);
+        log.setTotalDistance(0.0);
+        log.setTotalTime(Time.valueOf("01:00:00"));
+        log.setRating(3);
         return addLog(tourId, log);
     }
 

@@ -216,8 +216,10 @@ public class ReportService {
                     doc.addPage(page);
                     content = new PDPageContentStream(doc, page);
                     y = page.getMediaBox().getHeight() - 50;
+                    content.setFont(PDType1Font.HELVETICA, 11); // <-- HIER HINZUFÜGEN!
                 }
 
+                content.setFont(PDType1Font.HELVETICA, 11); // <-- Optional, falls du die Schriftart nochmal setzen willst
                 content.beginText();
                 content.newLineAtOffset(50, y);
                 content.showText(String.format("%s | %.2f | %.2f | %.2f",

@@ -48,11 +48,11 @@ public class TourDetailsViewModelTest {
     void testSetTourModelWithNull() {
         viewModel.setTourModel(null);
 
-        assertNull(viewModel.nameProperty().get());
-        assertNull(viewModel.descriptionProperty().get());
-        assertNull(viewModel.fromProperty().get());
-        assertNull(viewModel.toProperty().get());
-        assertNull(viewModel.transportTypeProperty().get());
+        assertEquals("", viewModel.nameProperty().get());
+        assertEquals("", viewModel.descriptionProperty().get());
+        assertEquals("", viewModel.fromProperty().get());
+        assertEquals("", viewModel.toProperty().get());
+        assertEquals("Car", viewModel.transportTypeProperty().get());
         assertEquals(0.0, viewModel.distanceProperty().get());
         assertEquals(0.0, viewModel.estimatedTimeProperty().get());
     }

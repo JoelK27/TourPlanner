@@ -20,7 +20,8 @@ public class LogController {
 
     @GetMapping("/api/tours/{tourId}/logs")
     public List<Log> getLogsForTour(@PathVariable int tourId) {
-        Tour tour = tourRepository.findById(tourId).orElseThrow();
+        Tour tour = tourRepository.findById(tourId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tour not found"));
         return logRepository.findByTour(tour);
     }
 
