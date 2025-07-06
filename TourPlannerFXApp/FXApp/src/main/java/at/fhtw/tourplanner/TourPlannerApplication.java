@@ -23,7 +23,7 @@ public class TourPlannerApplication extends Application {
 
         scene.getStylesheets().add(getClass().getResource("/at/fhtw/tourplanner/view/styles/application.css").toExternalForm());
 
-        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/at/fhtw/tourplanner/view/icons/ziel.png")));
+        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/at/fhtw/tourplanner/view/icons/ziel1.png")));
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Tour Planner");

@@ -3,7 +3,9 @@ package at.fhtw.tourplanner.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.hibernate.validator.constraints.Range;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -24,15 +26,18 @@ public class Log {
     @JsonView({Views.Internal.class, Views.Export.class})
     private String comment;
 
+    @Range(min = 1, max = 5, message = "Difficulty must be between 1 and 5")
     @JsonView({Views.Internal.class, Views.Export.class})
     private int difficulty;
 
     @JsonView({Views.Internal.class, Views.Export.class})
     private double totalDistance;
 
+    @NotNull
     @JsonView({Views.Internal.class, Views.Export.class})
     private Time totalTime;
 
+    @Range(min = 1, max = 5, message = "Rating must be between 1 and 5")
     @JsonView({Views.Internal.class, Views.Export.class})
     private int rating;
 

@@ -168,6 +168,21 @@ public class TourDetailsController {
         tourDetailsViewModel.selectedLogProperty().addListener((obs, oldLog, newLog) -> {
             updateLogDetailsView(newLog);
         });
+
+        nameField.getStyleClass().add("required-field");
+        fromField.getStyleClass().add("required-field");
+        toField.getStyleClass().add("required-field");
+        distanceField.getStyleClass().add("required-field");
+        estimatedTimeField.getStyleClass().add("required-field");
+
+        // Add listeners for real-time validation feedback
+        nameField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null || newVal.trim().isEmpty()) {
+                nameField.setStyle("-fx-border-color: red;");
+            } else {
+                nameField.setStyle("");
+            }
+        });
     }
 
     private void updateLogDetailsView(Log log) {
@@ -333,9 +348,24 @@ public class TourDetailsController {
                 try {
                     String comment = logCommentArea.getText();
                     int difficulty = Integer.parseInt(logDifficultyField.getText());
+                    if (difficulty < 1 || difficulty > 5) {
+                        showAlert("Invalid Difficulty", "Difficulty must be between 1 and 5.");
+                        return;
+                    }
+
                     double totalDistance = Double.parseDouble(logTotalDistanceField.getText());
+                    if (totalDistance <= 0) {
+                        showAlert("Invalid Distance", "Enter a valid total distance.");
+                        return;
+                    }
+
                     Time totalTime = Time.valueOf(logTotalTimeField.getText());
+
                     int rating = Integer.parseInt(logRatingField.getText());
+                    if (rating < 1 || rating > 5) {
+                        showAlert("Invalid Rating", "Rating must be between 1 and 5.");
+                        return;
+                    }
 
                     logger.info("Updating log with ID: {} - Comment: {}, Difficulty: {}, Distance: {}, Time: {}, Rating: {}", 
                               selectedLog.getId(), comment, difficulty, totalDistance, totalTime, rating);
@@ -343,7 +373,7 @@ public class TourDetailsController {
                     tourDetailsViewModel.updateSelectedLog(selectedLog, comment, difficulty, totalDistance, totalTime, rating);
                 } catch (NumberFormatException e) {
                     logger.error("Invalid number format in log fields: {}", e.getMessage());
-                    showAlert("Invalid Entry", "Bitte geben Sie gültige Werte für die Log-Attribute ein.");
+                    showAlert("Invalid Entry", "Please input Valid Values for Log Attributes.");
                 } catch (IllegalArgumentException e) {
                     logger.error("Invalid time format in log fields: {}", e.getMessage());
                     showAlert("Invalid Timeformat", "Please provide a time in following format: HH:MM:SS.");
@@ -355,6 +385,33 @@ public class TourDetailsController {
         } else {
             logger.warn("Attempt to update log without selection");
             showAlert("No log selected", "Please select a log-entry from the list.");
+        }
+    }
+
+
+    private void highlightInvalidLogFields(Map<String, String> errors) {
+        // Setze zunächst alle Styles zurück
+        logCommentArea.getStyleClass().remove("error-field");
+        logDifficultyField.getStyleClass().remove("error-field");
+        logRatingField.getStyleClass().remove("error-field");
+        logTotalDistanceField.getStyleClass().remove("error-field");
+        logTotalTimeField.getStyleClass().remove("error-field");
+
+        // Markiere fehlerhafte Felder
+        if (errors.containsKey("comment")) {
+            logCommentArea.getStyleClass().add("error-field");
+        }
+        if (errors.containsKey("difficulty")) {
+            logDifficultyField.getStyleClass().add("error-field");
+        }
+        if (errors.containsKey("rating")) {
+            logRatingField.getStyleClass().add("error-field");
+        }
+        if (errors.containsKey("totalDistance")) {
+            logTotalDistanceField.getStyleClass().add("error-field");
+        }
+        if (errors.containsKey("totalTime")) {
+            logTotalTimeField.getStyleClass().add("error-field");
         }
     }
 
@@ -705,18 +762,102 @@ public class TourDetailsController {
             showAlert("No Tour Selected", "Please select a tour-entry from the list.");
             return;
         }
+
+        // Validate required fields
+        if (!validateTourFields()) {
+            return;
+        }
+
         try {
             logger.info("Saving tour details for tour ID: {}", currentTour.getId());
+
+            // Update the currentTour with values from UI fields
+            currentTour.setName(nameField.getText());
+            currentTour.setTourDescription(descriptionArea.getText());
+            currentTour.setFrom(fromField.getText());
+            currentTour.setTo(toField.getText());
+            currentTour.setTransportType(transportTypeChoice.getValue());
+
+            try {
+                double distance = Double.parseDouble(distanceField.getText());
+                double estTime = Double.parseDouble(estimatedTimeField.getText());
+
+                if (distance < 0) {
+                    showAlert("Invalid Value", "Distance must be a positive number.");
+                    return;
+                }
+
+                if (estTime < 0) {
+                    showAlert("Invalid Value", "Estimated time must be a positive number.");
+                    return;
+                }
+
+                currentTour.setTourDistance(distance);
+                currentTour.setEstimatedTime(estTime);
+            } catch (NumberFormatException e) {
+                logger.error("Invalid number format in tour details: {}", e.getMessage());
+                showAlert("Invalid Entry", "Please enter valid numbers for distance and estimated time.");
+                return;
+            }
+
             // Tour im ViewModel/Backend aktualisieren
             tourDetailsViewModel.updateTourModel();
             showInformation("Saved", "Tour details have been saved successfully.");
             updateTourTitle();
             logger.info("Tour details saved successfully for tour ID: {}", currentTour.getId());
-
-        } catch (NumberFormatException e) {
-            logger.error("Invalid number format in tour details: {}", e.getMessage());
-            showAlert("Invalid Entry", "Please enter valid numbers for distance and estimated time.");
+        } catch (Exception e) {
+            logger.error("Error saving tour details: {}", e.getMessage(), e);
+            showAlert("Error", "Could not save tour details: " + e.getMessage());
         }
+    }
+
+    private boolean validateTourFields() {
+        StringBuilder errorMsg = new StringBuilder();
+
+        // Check name field
+        if (nameField.getText() == null || nameField.getText().trim().isEmpty()) {
+            errorMsg.append("- Tour name cannot be empty\n");
+        }
+
+        // Check from field
+        if (fromField.getText() == null || fromField.getText().trim().isEmpty()) {
+            errorMsg.append("- From location cannot be empty\n");
+        }
+
+        // Check to field
+        if (toField.getText() == null || toField.getText().trim().isEmpty()) {
+            errorMsg.append("- To location cannot be empty\n");
+        }
+
+        // Check distance field
+        if (distanceField.getText() == null || distanceField.getText().trim().isEmpty()) {
+            errorMsg.append("- Distance cannot be empty\n");
+        } else {
+            try {
+                Double.parseDouble(distanceField.getText());
+            } catch (NumberFormatException e) {
+                errorMsg.append("- Distance must be a valid number\n");
+            }
+        }
+
+        // Check estimated time field
+        if (estimatedTimeField.getText() == null || estimatedTimeField.getText().trim().isEmpty()) {
+            errorMsg.append("- Estimated time cannot be empty\n");
+        } else {
+            try {
+                Double.parseDouble(estimatedTimeField.getText());
+            } catch (NumberFormatException e) {
+                errorMsg.append("- Estimated time must be a valid number\n");
+            }
+        }
+
+        // If there are validation errors, show them
+        if (errorMsg.length() > 0) {
+            showAlert("Validation Error", "Please fix the following errors:\n" + errorMsg.toString());
+            return false;
+        }
+
+        return true;
     }
 
     @FXML

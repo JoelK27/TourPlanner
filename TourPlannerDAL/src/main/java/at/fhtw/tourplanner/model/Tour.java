@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,17 +24,23 @@ public class Tour {
     @JsonView(Views.Internal.class) // Nur für interne Verwendung
     private int id;
 
+    @NotNull(message = "Tour name cannot be null")
+    @NotEmpty(message = "Tour name cannot be empty")
     @JsonView({Views.Internal.class, Views.Export.class})
     private String name;
 
     @JsonView({Views.Internal.class, Views.Export.class})
     private String tourDescription;
-    
+
+    @NotNull(message = "From location cannot be null")
+    @NotEmpty(message = "From location cannot be empty")
     @Column(name = "from_location")
     @JsonProperty("from")
     @JsonView({Views.Internal.class, Views.Export.class})
     private String fromLocation;
-    
+
+    @NotNull(message = "To location cannot be null")
+    @NotEmpty(message = "To location cannot be empty")
     @Column(name = "to_location")
     @JsonProperty("to")
     @JsonView({Views.Internal.class, Views.Export.class})
@@ -40,9 +49,13 @@ public class Tour {
     @JsonView({Views.Internal.class, Views.Export.class})
     private String transportType;
 
+    @NotNull(message = "Tour distance cannot be null")
+    @Min(value = 0, message = "Tour distance must be positive")
     @JsonView({Views.Internal.class, Views.Export.class})
     private double tourDistance;
 
+    @NotNull(message = "Estimated time cannot be null")
+    @Min(value = 0, message = "Estimated time must be positive")
     @JsonView({Views.Internal.class, Views.Export.class})
     private double estimatedTime;
 

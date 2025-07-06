@@ -127,6 +127,31 @@
     -fx-font-size: 13px;
 }
 
+/* ===== VALIDATION STYLES ===== */
+.required-field {
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 2px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+}
+
+.required-field:focused {
+    -fx-border-color: #3498db;
+    -fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.3), 4, 0, 0, 0);
+}
+
+.error-field {
+    -fx-border-color: #e74c3c;
+    -fx-effect: dropshadow(gaussian, rgba(231, 76, 60, 0.3), 4, 0, 0, 0);
+}
+
+.error-message {
+    -fx-text-fill: #e74c3c;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+    -fx-padding: 2px 0 0 5px;
+}
+
 /* ===== BUTTONS ===== */
 .primary-button {
     -fx-background-color: linear-gradient(to bottom, #3498db, #2980b9);

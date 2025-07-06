@@ -39,8 +39,10 @@ public class SearchBarViewModel {
     }
 
     public void doSearch() {
-        for (var listener : listeners ) {
-            listener.search(searchString.get());
+        String searchTerm = searchString.get().trim();
+
+        for (var listener : listeners) {
+            listener.search(searchTerm);
         }
     }
 }
