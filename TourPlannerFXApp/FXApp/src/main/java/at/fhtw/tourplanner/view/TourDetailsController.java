@@ -358,7 +358,7 @@ public class TourDetailsController {
         if (file != null) {
             logger.info("Saving tour report for tour ID {} to file: {}", currentTour.getId(), file.getAbsolutePath());
             TourApiService.getInstance().saveTourReport(currentTour.getId(), file);
-            showAlert("Saved Report", "The Tour-Report has been saved successfully.");
+            showInformation("Saved Report", "The Tour-Report has been saved successfully.");
         }
     }
 
@@ -370,7 +370,7 @@ public class TourDetailsController {
         if (file != null) {
             logger.info("Saving summary report to file: {}", file.getAbsolutePath());
             TourApiService.getInstance().saveSummaryReport(file);
-            showAlert("Saved Report", "The Summary-Report has been saved successfully.");
+            showInformation("Saved Report", "The Summary-Report has been saved successfully.");
         }
     }
 
@@ -383,7 +383,7 @@ public class TourDetailsController {
         }
         logger.info("Loading tour statistics for tour ID: {}", currentTour.getId());
         var stats = TourApiService.getInstance().getTourStats(currentTour.getId());
-        showAlert("Tour-Statistics",
+        showInformation("Tour-Statistics",
                 "Popularity: " + stats.get("popularity") +
                 "\nChild-Friendliness: " + stats.get("childFriendliness") +
                 "\nØ Difficulty: " + stats.get("averageDifficulty") +
@@ -434,7 +434,7 @@ public class TourDetailsController {
                 logger.debug("Calling updateMap...");
                 updateMap(routeInfo);
 
-                showAlert("Route Calculated",
+                showInformation("Route Calculated",
                         String.format("Distance: %.2f km\nEstimated Time: %.2f hours",
                                 distance, estimatedTime));
             } else {
@@ -654,6 +654,14 @@ public class TourDetailsController {
         alert.showAndWait();
     }
 
+    private void showInformation(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
     private void updateTourTitle() {
         String name = tourDetailsViewModel.nameProperty().get();
         String from = tourDetailsViewModel.fromProperty().get();
@@ -692,7 +700,7 @@ public class TourDetailsController {
             logger.info("Saving tour details for tour ID: {}", currentTour.getId());
             // Tour im ViewModel/Backend aktualisieren
             tourDetailsViewModel.updateTourModel();
-            showAlert("Saved", "Tour details have been saved successfully.");
+            showInformation("Saved", "Tour details have been saved successfully.");
             updateTourTitle();
             logger.info("Tour details saved successfully for tour ID: {}", currentTour.getId());
 
@@ -721,7 +729,7 @@ public class TourDetailsController {
             }
             
             currentTour.setQuickNotes(notes);
-            showAlert("Success", "Notes saved successfully!");
+            showInformation("Success", "Notes saved successfully!");
             
             // Update tour title to show note indicator
             updateTourTitle();
@@ -765,6 +773,6 @@ public class TourDetailsController {
             allNotes.insert(0, "Found " + notesCount + " tours with notes\n\n");
         }
         
-        showAlert("📝 All Tour Notes", allNotes.toString());
+        showInformation("📝 All Tour Notes", allNotes.toString());
     }
 }

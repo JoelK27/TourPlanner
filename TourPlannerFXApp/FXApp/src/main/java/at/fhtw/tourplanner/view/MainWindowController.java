@@ -68,7 +68,7 @@ public class MainWindowController {
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
             TourApiService.getInstance().importToursFromFile(file);
-            showAlert("Import successful", "The tours have been imported successfully.");
+            showInformation("Import successful", "The tours have been imported successfully.");
         }
     }
 
@@ -82,8 +82,8 @@ public class MainWindowController {
         }
     }
 
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+    private void showInformation(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
