@@ -1,6 +1,7 @@
 package at.fhtw.tourplanner.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,12 +15,25 @@ public class Log {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @JsonView({Views.Internal.class, Views.Export.class})
     private Date date;
+
+    @JsonView({Views.Internal.class, Views.Export.class})
     private Time time;
+
+    @JsonView({Views.Internal.class, Views.Export.class})
     private String comment;
+
+    @JsonView({Views.Internal.class, Views.Export.class})
     private int difficulty;
+
+    @JsonView({Views.Internal.class, Views.Export.class})
     private double totalDistance;
+
+    @JsonView({Views.Internal.class, Views.Export.class})
     private Time totalTime;
+
+    @JsonView({Views.Internal.class, Views.Export.class})
     private int rating;
 
     @ManyToOne

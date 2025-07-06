@@ -2,10 +2,12 @@ package at.fhtw.tourplanner.rest;
 
 import at.fhtw.tourplanner.model.Log;
 import at.fhtw.tourplanner.model.Tour;
+import at.fhtw.tourplanner.model.Views;
 import at.fhtw.tourplanner.repo.TourRepository;
 import at.fhtw.tourplanner.service.OpenRouteService;
 import at.fhtw.tourplanner.service.ReportService;
 import at.fhtw.tourplanner.service.StatsService;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -147,6 +149,7 @@ public class TourController {
     }
 
     @GetMapping("/export")
+    @JsonView(Views.Export.class)
     public List<Tour> exportTours() {
         return tourRepository.findAll();
     }

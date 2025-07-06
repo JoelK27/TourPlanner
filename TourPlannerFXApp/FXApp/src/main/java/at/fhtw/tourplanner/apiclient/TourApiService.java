@@ -149,12 +149,15 @@ public class TourApiService {
         return addLog(tourId, log);
     }
 
-    public void updateLog(Log log) {
+    public Log updateLog(Log log) {
         try {
             String jsonLog = objectMapper.writeValueAsString(log);
-            executePut(BASE_URL + "/api/logs/" + log.getId(), jsonLog);
+            String response = executePut(BASE_URL + "/api/logs/" + log.getId(), jsonLog);
+            return objectMapper.readValue(response, Log.class);
         } catch (Exception e) {
             System.err.println("Error updating log: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
     }
 

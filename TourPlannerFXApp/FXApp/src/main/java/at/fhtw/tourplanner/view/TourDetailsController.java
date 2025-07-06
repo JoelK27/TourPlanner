@@ -283,12 +283,18 @@ public class TourDetailsController {
             Log newLog = tourDetailsViewModel.createNewLog(date, time, "New Entry",
                     3, 0.0, Time.valueOf("00:00:00"), 3);
 
-            // Wähle das neue Log in der Liste aus
-            logListView.getSelectionModel().select(newLog);
-            logListView.scrollTo(newLog);
+            // Prüfe, ob das Log erfolgreich erstellt wurde
+            if (newLog != null && newLog.getId() > 0) {
+                // Wähle das neue Log in der Liste aus
+                logListView.getSelectionModel().select(newLog);
+                logListView.scrollTo(newLog);
 
-            // Setze den Fokus auf das Kommentarfeld für sofortige Bearbeitung
-            logCommentArea.requestFocus();
+                // Setze den Fokus auf das Kommentarfeld für sofortige Bearbeitung
+                logCommentArea.requestFocus();
+            } else {
+                logger.error("Failed to create new log or invalid log ID");
+                showAlert("Error", "Failed to create new log entry. Please try again.");
+            }
         } catch (Exception e) {
             logger.error("Error creating log: {}", e.getMessage(), e);
             showAlert("Error", "Error creating Log: " + e.getMessage());
@@ -315,7 +321,14 @@ public class TourDetailsController {
     @FXML
     void onUpdateLogButtonPressed() {
         Log selectedLog = logListView.getSelectionModel().getSelectedItem();
+
         if (selectedLog != null) {
+            if (selectedLog.getId() <= 0) {
+                logger.error("Cannot update log with invalid ID: {}", selectedLog.getId());
+                showAlert("Error", "Cannot save this log entry. Please create a new log entry instead.");
+                return;
+            }
+
             if (validateLogFields()) {
                 try {
                     String comment = logCommentArea.getText();
@@ -550,10 +563,6 @@ public class TourDetailsController {
             </style>
         </head>
         <body>
-            <div class="test-info">
-                <h3>🧪 TEST MAP</h3>
-                <p>If you see this, WebView works!</p>
-            </div>
             <div id="map"></div>
             <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
             <script>

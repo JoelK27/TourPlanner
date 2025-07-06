@@ -34,13 +34,7 @@ public class TourDetailsViewModel {
 
     public TourDetailsViewModel() {
         // Update model when properties change
-        name.addListener((arg, oldVal, newVal) -> updateTourModel());
-        description.addListener((arg, oldVal, newVal) -> updateTourModel());
-        from.addListener((arg, oldVal, newVal) -> updateTourModel());
-        to.addListener((arg, oldVal, newVal) -> updateTourModel());
-        transportType.addListener((arg, oldVal, newVal) -> updateTourModel());
-        distance.addListener((arg, oldVal, newVal) -> updateTourModel());
-        estimatedTime.addListener((arg, oldVal, newVal) -> updateTourModel());
+
     }
 
     // Add property accessor methods
@@ -152,14 +146,24 @@ public class TourDetailsViewModel {
     }
 
     public void updateSelectedLog(Log log, String comment, int difficulty, double totalDistance, Time totalTime, int rating) {
-        if (log != null) {
+        if (log != null && log.getId() > 0) {
             log.setComment(comment);
             log.setDifficulty(difficulty);
             log.setTotalDistance(totalDistance);
             log.setTotalTime(totalTime);
             log.setRating(rating);
-            apiService.updateLog(log);
+
+            Log updatedLog = apiService.updateLog(log);
+
+            // Prüfe, ob das Update erfolgreich war
+            if (updatedLog != null) {
+                log.setDate(updatedLog.getDate());
+                log.setTime(updatedLog.getTime());
+            }
+
             refreshLogs();
+        } else {
+            System.err.println("Attempt to update invalid log (id=" + (log != null ? log.getId() : "null") + ")");
         }
     }
 
