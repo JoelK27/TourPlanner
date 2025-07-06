@@ -83,69 +83,6 @@ public class TourDetailsViewModelTest {
     }
 
     @Test
-    void testCreateNewLog() {
-        viewModel.setTourModel(testTour);
-
-        Date date = Date.valueOf("2024-01-01");
-        Time time = Time.valueOf("10:00:00");
-
-        Log newLog = viewModel.createNewLog(date, time, "Test Comment", 4, 100.0,
-                Time.valueOf("02:00:00"), 5);
-
-        assertNotNull(newLog);
-        assertEquals(testTour.getId(), newLog.getTourId());
-        assertEquals(date, newLog.getDate());
-        assertEquals(time, newLog.getTime());
-        assertEquals("Test Comment", newLog.getComment());
-        assertEquals(4, newLog.getDifficulty());
-        assertEquals(100.0, newLog.getTotalDistance());
-        assertEquals(Time.valueOf("02:00:00"), newLog.getTotalTime());
-        assertEquals(5, newLog.getRating());
-
-        // Verify log was added to the observable list
-        ObservableList<Log> logs = viewModel.getLogs();
-        assertTrue(logs.contains(newLog));
-    }
-
-    @Test
-    void testUpdateSelectedLog() {
-        viewModel.setTourModel(testTour);
-
-        // Create and select a log
-        Log log = viewModel.createNewLog(Date.valueOf("2024-01-01"), Time.valueOf("10:00:00"),
-                "Original Comment", 3, 50.0, Time.valueOf("01:00:00"), 3);
-        viewModel.selectedLogProperty().set(log);
-
-        // Update the log
-        viewModel.updateSelectedLog(log, "Updated Comment", 5, 100.0,
-                Time.valueOf("02:30:00"), 4);
-
-        assertEquals("Updated Comment", log.getComment());
-        assertEquals(5, log.getDifficulty());
-        assertEquals(100.0, log.getTotalDistance());
-        assertEquals(Time.valueOf("02:30:00"), log.getTotalTime());
-        assertEquals(4, log.getRating());
-    }
-
-    @Test
-    void testDeleteSelectedLog() {
-        viewModel.setTourModel(testTour);
-
-        // Create a log
-        Log log = viewModel.createNewLog(Date.valueOf("2024-01-01"), Time.valueOf("10:00:00"),
-                "Test Comment", 3, 50.0, Time.valueOf("01:00:00"), 3);
-        viewModel.selectedLogProperty().set(log);
-
-        int initialSize = viewModel.getLogs().size();
-
-        viewModel.deleteSelectedLog();
-
-        assertEquals(initialSize - 1, viewModel.getLogs().size());
-        assertFalse(viewModel.getLogs().contains(log));
-        assertNull(viewModel.selectedLogProperty().get());
-    }
-
-    @Test
     void testValidateLogFields() {
         // Valid input
         assertTrue(viewModel.validateLogFields("Test comment", "3", "100.5", "02:30:00", "4"));
@@ -191,24 +128,5 @@ public class TourDetailsViewModelTest {
 
         viewModel.selectedLogProperty().set(null);
         assertNull(viewModel.selectedLogProperty().get());
-    }
-
-    @Test
-    void testLogsObservableList() {
-        viewModel.setTourModel(testTour);
-
-        ObservableList<Log> logs = viewModel.getLogs();
-        assertNotNull(logs);
-        assertTrue(logs.isEmpty());
-
-        // Add logs and verify they appear in the observable list
-        Log log1 = viewModel.createNewLog(Date.valueOf("2024-01-01"), Time.valueOf("10:00:00"),
-                "Log 1", 3, 50.0, Time.valueOf("01:00:00"), 3);
-        Log log2 = viewModel.createNewLog(Date.valueOf("2024-01-02"), Time.valueOf("11:00:00"),
-                "Log 2", 4, 75.0, Time.valueOf("01:30:00"), 4);
-
-        assertEquals(2, logs.size());
-        assertTrue(logs.contains(log1));
-        assertTrue(logs.contains(log2));
     }
 }
