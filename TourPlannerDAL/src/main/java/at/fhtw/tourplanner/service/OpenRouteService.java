@@ -20,7 +20,7 @@ public class OpenRouteService {
 
     private static final Logger logger = LogManager.getLogger(OpenRouteService.class);
 
-    @Value("${openroute.api.key:5b3ce3597851110001cf62485aa12d7a641a4d409727cc48fee2e836}")
+    @Value("${openroute.api.key:eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQzNzdkNDBhMDBjODQ4YjFhNWY3MDQyMzA1Mzc0OGUwIiwiaCI6Im11cm11cjY0In0=}")
     private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
